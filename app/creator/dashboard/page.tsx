@@ -45,8 +45,8 @@ export default function CreatorDashboard() {
                     if (applications) {
                         setStats({
                             applications: applications.length,
-                            accepted: applications.filter((a) => a.status === 'accepted').length,
-                            pending: applications.filter((a) => a.status === 'pending').length,
+                            accepted: applications.filter((a: any) => a.status === 'accepted').length,
+                            pending: applications.filter((a: any) => a.status === 'pending').length,
                         })
                     }
                 }

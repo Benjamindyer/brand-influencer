@@ -15,8 +15,8 @@ if (!supabaseUrl || !supabaseAnonKey) {
     )
 }
 
-// Create browser client - createBrowserClient handles cookies automatically
-// For CORS issues, ensure your Supabase project has your domain in allowed origins
+// Create browser client - Supabase handles CORS automatically
+// Only use this in client components ('use client')
 export const supabase = createBrowserClient(
     supabaseUrl || 'https://placeholder.supabase.co',
     supabaseAnonKey || 'placeholder-key'
