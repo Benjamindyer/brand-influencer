@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase/client'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import Link from 'next/link'
@@ -17,34 +16,21 @@ export function CreditDisplay() {
     
     async function loadCredits() {
         try {
-            const {
-                data: { user },
-            } = await supabase.auth.getUser()
+            const response = await fetch('/api/brand/subscription', {
+                headers: { 'Accept': 'application/json' },
+            })
             
-            if (!user) return
-            
-            const { data: brandProfile } = await supabase
-                .from('brand_profiles')
-                .select('id')
-                .eq('user_id', user.id)
-                .single()
-            
-            if (!brandProfile) return
-            
-            const { data: subscription } = await supabase
-                .from('subscriptions')
-                .select('campaign_credits, tier, status')
-                .eq('brand_id', brandProfile.id)
-                .single()
-            
-            if (subscription) {
-                setCredits(subscription.campaign_credits || 0)
-                setTier(subscription.tier)
-            } else {
+            if (!response.ok) {
                 setCredits(0)
+                return
             }
+            
+            const data = await response.json()
+            setCredits(data.credits || 0)
+            setTier(data.tier || null)
         } catch (error) {
             console.error('Failed to load credits:', error)
+            setCredits(0)
         } finally {
             setLoading(false)
         }
@@ -78,4 +64,3 @@ export function CreditDisplay() {
         </div>
     )
 }
-

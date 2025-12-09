@@ -2,8 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase/client'
-import { getBrandProfile } from '@/lib/supabase/queries/brand'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
@@ -25,37 +23,40 @@ export default function BrandDashboard() {
     
     async function loadData() {
         try {
-            const {
-                data: { user },
-            } = await supabase.auth.getUser()
+            // Check auth first
+            const authResponse = await fetch('/api/auth/status', {
+                headers: { 'Accept': 'application/json' },
+            })
             
-            if (!user) {
-                router.push('/login')
+            if (!authResponse.ok) {
+                router.push('/auth/login')
                 return
             }
             
-            const [profileData, briefsData, applicationsData, subscriptionData] = await Promise.all([
-                getBrandProfile(user.id),
-                fetch('/api/brand/briefs').then((r) => r.json()),
-                supabase
-                    .from('applications')
-                    .select(`
-                        *,
-                        brief:briefs!inner(brand_id, title)
-                    `)
-                    .eq('briefs.brand_id', (await supabase.from('brand_profiles').select('id').eq('user_id', user.id).single()).data?.id || '')
-                    .eq('status', 'pending'),
-                supabase
-                    .from('subscriptions')
-                    .select('*')
-                    .eq('brand_id', (await supabase.from('brand_profiles').select('id').eq('user_id', user.id).single()).data?.id || '')
-                    .single(),
-            ])
+            const authData = await authResponse.json()
+            if (!authData.authenticated) {
+                router.push('/auth/login')
+                return
+            }
             
-            setProfile(profileData)
-            setBriefs(briefsData || [])
-            setApplications(applicationsData.data || [])
-            setSubscription(subscriptionData.data)
+            // Get dashboard data
+            const response = await fetch('/api/brand/dashboard', {
+                headers: { 'Accept': 'application/json' },
+            })
+            
+            if (!response.ok) {
+                if (response.status === 401) {
+                    router.push('/auth/login')
+                    return
+                }
+                throw new Error('Failed to load dashboard')
+            }
+            
+            const data = await response.json()
+            setProfile(data.profile)
+            setBriefs(data.briefs || [])
+            setApplications(data.applications || [])
+            setSubscription(data.subscription)
         } catch (error) {
             console.error('Failed to load dashboard:', error)
         } finally {
@@ -223,4 +224,3 @@ export default function BrandDashboard() {
         </div>
     )
 }
-

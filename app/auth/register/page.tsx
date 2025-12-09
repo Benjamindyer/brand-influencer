@@ -2,11 +2,11 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
+import Link from 'next/link'
 import type { UserRole } from '@/types/auth'
 
 export default function RegisterPage() {
@@ -24,57 +24,41 @@ export default function RegisterPage() {
         
         try {
             // Register via API route (handles profile creation server-side)
-            const response = await fetch('/api/auth/register', {
+            const registerResponse = await fetch('/api/auth/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json',
                 },
-                body: JSON.stringify({
-                    email,
-                    password,
-                    role,
-                }),
+                body: JSON.stringify({ email, password, role }),
             })
 
-            const data = await response.json()
+            const registerData = await registerResponse.json()
 
-            if (!response.ok) {
-                throw new Error(data.error || 'Registration failed')
+            if (!registerResponse.ok) {
+                throw new Error(registerData.error || 'Registration failed')
             }
 
-            // Sign in the user after successful registration
-            const { error: signInError } = await supabase.auth.signInWithPassword({
-                email,
-                password,
+            // Sign in via API route after successful registration
+            const loginResponse = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({ email, password }),
             })
 
-            if (signInError) {
+            const loginData = await loginResponse.json()
+
+            if (!loginResponse.ok) {
                 // Registration succeeded but sign-in failed - redirect to login
                 router.push('/auth/login?registered=true')
                 return
             }
 
-            // Get user role to redirect appropriately
-            const { data: { user } } = await supabase.auth.getUser()
-            if (user) {
-                const { data: profile } = await supabase
-                    .from('user_profiles')
-                    .select('role')
-                    .eq('id', user.id)
-                    .single()
-
-                if (profile) {
-                    if (profile.role === 'creator') {
-                        router.push('/creator/dashboard')
-                    } else if (profile.role === 'brand') {
-                        router.push('/brand/dashboard')
-                    } else {
-                        router.push('/')
-                    }
-                } else {
-                    router.push('/')
-                }
-            }
+            // Redirect based on role
+            router.push(loginData.redirectTo || '/')
         } catch (err) {
             let errorMessage = 'An error occurred'
             if (err instanceof Error) {
@@ -145,9 +129,9 @@ export default function RegisterPage() {
                         
                         <p className='text-sm text-center text-[var(--color-text-secondary)]'>
                             Already have an account?{' '}
-                            <a href='/auth/login' className='text-[var(--color-primary-600)] hover:underline'>
+                            <Link href='/auth/login' className='text-[var(--color-primary-600)] hover:underline'>
                                 Sign in
-                            </a>
+                            </Link>
                         </p>
                     </form>
                 </CardContent>
@@ -155,4 +139,3 @@ export default function RegisterPage() {
         </div>
     )
 }
-

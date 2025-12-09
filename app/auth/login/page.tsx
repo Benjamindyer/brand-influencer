@@ -2,10 +2,10 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
+import Link from 'next/link'
 
 export default function LoginPage() {
     const router = useRouter()
@@ -20,36 +20,23 @@ export default function LoginPage() {
         setError(null)
         
         try {
-            const { error: authError } = await supabase.auth.signInWithPassword({
-                email,
-                password,
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({ email, password }),
             })
-            
-            if (authError) throw authError
-            
-            // Get user role to redirect appropriately
-            const { data: { user } } = await supabase.auth.getUser()
-            if (user) {
-                const { data: profile } = await supabase
-                    .from('user_profiles')
-                    .select('role')
-                    .eq('id', user.id)
-                    .single()
-                
-                if (profile) {
-                    if (profile.role === 'creator') {
-                        router.push('/creator/dashboard')
-                    } else if (profile.role === 'brand') {
-                        router.push('/brand/dashboard')
-                    } else if (profile.role === 'admin') {
-                        router.push('/admin/dashboard')
-                    } else {
-                        router.push('/')
-                    }
-                } else {
-                    router.push('/')
-                }
+
+            const data = await response.json()
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Invalid email or password')
             }
+
+            // Redirect based on role
+            router.push(data.redirectTo || '/')
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Invalid email or password')
         } finally {
@@ -84,12 +71,12 @@ export default function LoginPage() {
                         />
                         
                         <div className='flex items-center justify-between'>
-                            <a
-                                href='/forgot-password'
+                            <Link
+                                href='/auth/forgot-password'
                                 className='text-sm text-[var(--color-primary-600)] hover:underline'
                             >
                                 Forgot password?
-                            </a>
+                            </Link>
                         </div>
                         
                         {error && (
@@ -109,9 +96,9 @@ export default function LoginPage() {
                         
                         <p className='text-sm text-center text-[var(--color-text-secondary)]'>
                             Don't have an account?{' '}
-                            <a href='/register' className='text-[var(--color-primary-600)] hover:underline'>
+                            <Link href='/auth/register' className='text-[var(--color-primary-600)] hover:underline'>
                                 Register
-                            </a>
+                            </Link>
                         </p>
                     </form>
                 </CardContent>
@@ -119,4 +106,3 @@ export default function LoginPage() {
         </div>
     )
 }
-

@@ -1,9 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
-import { supabase } from '@/lib/supabase/client'
-import { signOut } from '@/lib/auth/helpers'
 import Link from 'next/link'
 import { Avatar } from '@/components/ui/Avatar'
 
@@ -57,10 +55,14 @@ export function Sidebar({ role, user }: SidebarProps) {
     
     async function handleSignOut() {
         try {
-            await signOut()
+            await fetch('/api/auth/signout', {
+                method: 'POST',
+                headers: { 'Accept': 'application/json' },
+            })
             router.push('/auth/login')
         } catch (error) {
             console.error('Failed to sign out:', error)
+            router.push('/auth/login')
         }
     }
     
@@ -218,4 +220,3 @@ function TradesIcon() {
         </svg>
     )
 }
-

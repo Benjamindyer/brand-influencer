@@ -1,10 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { supabase } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
+import Link from 'next/link'
 
 export default function ForgotPasswordPage() {
     const [email, setEmail] = useState('')
@@ -19,11 +19,20 @@ export default function ForgotPasswordPage() {
         setMessage(null)
         
         try {
-            const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-                redirectTo: `${window.location.origin}/reset-password`,
+            const response = await fetch('/api/auth/forgot-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({ email }),
             })
-            
-            if (resetError) throw resetError
+
+            const data = await response.json()
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to send reset link')
+            }
             
             setMessage('Check your email for a password reset link')
         } catch (err) {
@@ -73,9 +82,9 @@ export default function ForgotPasswordPage() {
                         </Button>
                         
                         <p className='text-sm text-center text-[var(--color-text-secondary)]'>
-                            <a href='/login' className='text-[var(--color-primary-600)] hover:underline'>
+                            <Link href='/auth/login' className='text-[var(--color-primary-600)] hover:underline'>
                                 Back to Sign In
-                            </a>
+                            </Link>
                         </p>
                     </form>
                 </CardContent>
@@ -83,4 +92,3 @@ export default function ForgotPasswordPage() {
         </div>
     )
 }
-
