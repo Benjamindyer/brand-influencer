@@ -1,25 +1,12 @@
-import { createClient, SupabaseClient } from '@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js'
 
-let supabaseInstance: SupabaseClient | null = null
+// Client-side Supabase client
+// NEXT_PUBLIC_ env vars are available at build time and runtime
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key'
 
-function getSupabaseClient() {
-    if (supabaseInstance) {
-        return supabaseInstance
-    }
-
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-    if (!supabaseUrl || !supabaseAnonKey) {
-        throw new Error('Missing Supabase environment variables')
-    }
-
-    supabaseInstance = createClient(supabaseUrl, supabaseAnonKey)
-    return supabaseInstance
+if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    console.error('Missing Supabase environment variables - using placeholder client')
 }
 
-export const supabase = new Proxy({} as SupabaseClient, {
-    get(_target, prop) {
-        return getSupabaseClient()[prop as keyof SupabaseClient]
-    },
-})
+export const supabase = createClient(supabaseUrl, supabaseAnonKey)
