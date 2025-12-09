@@ -56,17 +56,18 @@ export const Select: React.FC<SelectProps> = ({
                     }}
                     {...props}
                 >
-                {placeholder && (
-                    <option value='' disabled>
-                        {placeholder}
-                    </option>
-                )}
-                {options.map((option) => (
-                    <option key={option.value} value={option.value}>
-                        {option.label}
-                    </option>
-                ))}
-            </select>
+                    {placeholder && (
+                        <option value='' disabled>
+                            {placeholder}
+                        </option>
+                    )}
+                    {options.map((option) => (
+                        <option key={option.value} value={option.value} className='bg-[var(--color-bg-card)]'>
+                            {option.label}
+                        </option>
+                    ))}
+                </select>
+            </div>
             {error && (
                 <p className='mt-1 text-sm text-[var(--color-error-600)]'>{error}</p>
             )}
@@ -143,4 +144,3 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
         </div>
     )
 }
-
