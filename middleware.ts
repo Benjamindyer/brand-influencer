@@ -48,7 +48,7 @@ export async function middleware(request: NextRequest) {
     const pathname = request.nextUrl.pathname
     
     // Public routes
-    const publicRoutes = ['/login', '/register', '/forgot-password', '/verify-email', '/']
+    const publicRoutes = ['/auth', '/']
     const isPublicRoute = publicRoutes.some((route) => pathname.startsWith(route))
     
     if (isPublicRoute) {
@@ -58,7 +58,7 @@ export async function middleware(request: NextRequest) {
     // Protected routes
     if (!session) {
         const redirectUrl = request.nextUrl.clone()
-        redirectUrl.pathname = '/login'
+        redirectUrl.pathname = '/auth/login'
         redirectUrl.searchParams.set('redirect', pathname)
         return NextResponse.redirect(redirectUrl)
     }
@@ -72,7 +72,7 @@ export async function middleware(request: NextRequest) {
     
     if (!profile) {
         const redirectUrl = request.nextUrl.clone()
-        redirectUrl.pathname = '/register'
+        redirectUrl.pathname = '/auth/register'
         return NextResponse.redirect(redirectUrl)
     }
     
@@ -89,6 +89,18 @@ export async function middleware(request: NextRequest) {
     
     if (pathname.startsWith('/admin') && userRole !== 'admin') {
         return NextResponse.redirect(new URL('/unauthorized', request.url))
+    }
+    
+    // Also protect auth routes - redirect if already logged in
+    if (pathname.startsWith('/auth') && session) {
+        // Redirect to appropriate dashboard based on role
+        if (userRole === 'creator') {
+            return NextResponse.redirect(new URL('/creator/dashboard', request.url))
+        } else if (userRole === 'brand') {
+            return NextResponse.redirect(new URL('/brand/dashboard', request.url))
+        } else if (userRole === 'admin') {
+            return NextResponse.redirect(new URL('/admin/dashboard', request.url))
+        }
     }
     
     return res

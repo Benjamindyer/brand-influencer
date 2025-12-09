@@ -62,7 +62,7 @@ export function Navigation() {
     async function handleSignOut() {
         try {
             await signOut()
-            router.push('/login')
+            router.push('/auth/login')
         } catch (error) {
             console.error('Failed to sign out:', error)
         }
@@ -112,12 +112,12 @@ export function Navigation() {
                         Brand Influencer
                     </Link>
                     <div className='flex gap-2'>
-                        <Link href='/login'>
+                        <Link href='/auth/login'>
                             <Button variant='outline' size='sm'>
                                 Sign In
                             </Button>
                         </Link>
-                        <Link href='/register'>
+                        <Link href='/auth/register'>
                             <Button variant='primary' size='sm'>
                                 Register
                             </Button>
