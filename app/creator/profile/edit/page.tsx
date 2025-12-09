@@ -23,12 +23,23 @@ export default function EditProfilePage() {
     useEffect(() => {
         async function loadData() {
             try {
+                // Check if supabase client is available
+                if (!supabase || typeof supabase.auth === 'undefined') {
+                    router.push('/auth/login')
+                    return
+                }
+                
                 const {
                     data: { user },
+                    error: authError,
                 } = await supabase.auth.getUser()
                 
-                if (!user) {
-                    router.push('/login')
+                if (authError || !user) {
+                    // Silently handle CORS/auth errors
+                    if (authError && !authError.message?.includes('Load failed') && !authError.message?.includes('CORS')) {
+                        console.warn('Auth error:', authError.message)
+                    }
+                    router.push('/auth/login')
                     return
                 }
                 
