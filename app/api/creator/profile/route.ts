@@ -109,10 +109,19 @@ export async function POST(request: NextRequest) {
         
         const {
             data: { user },
+            error: authError,
         } = await supabase.auth.getUser()
         
-        if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        if (authError || !user) {
+            return NextResponse.json(
+                { error: 'Unauthorized' },
+                { 
+                    status: 401,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                }
+            )
         }
         
         const body = await request.json()
@@ -129,7 +138,16 @@ export async function POST(request: NextRequest) {
             .single()
         
         if (createError) {
-            throw createError
+            console.error('Failed to create profile:', createError)
+            return NextResponse.json(
+                { error: createError.message || 'Failed to create profile' },
+                { 
+                    status: 500,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                }
+            )
         }
         
         // Add additional trades if provided
@@ -148,12 +166,19 @@ export async function POST(request: NextRequest) {
             status: 201,
             headers: {
                 'Content-Type': 'application/json',
+                'Cache-Control': 'no-store',
             },
         })
     } catch (error) {
+        console.error('API route error:', error)
         return NextResponse.json(
             { error: error instanceof Error ? error.message : 'Internal server error' },
-            { status: 500 }
+            { 
+                status: 500,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }
         )
     }
 }
@@ -164,24 +189,41 @@ export async function PATCH(request: NextRequest) {
         
         const {
             data: { user },
+            error: authError,
         } = await supabase.auth.getUser()
         
-        if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        if (authError || !user) {
+            return NextResponse.json(
+                { error: 'Unauthorized' },
+                { 
+                    status: 401,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                }
+            )
         }
         
         const body = await request.json()
         const { additional_trades, ...profileData } = body
         
         // Get current profile first
-        const { data: currentProfile } = await supabase
+        const { data: currentProfile, error: profileFetchError } = await supabase
             .from('creator_profiles')
             .select('id')
             .eq('user_id', user.id)
             .single()
         
-        if (!currentProfile) {
-            return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
+        if (profileFetchError || !currentProfile) {
+            return NextResponse.json(
+                { error: 'Profile not found' },
+                { 
+                    status: 404,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                }
+            )
         }
         
         // Update profile using server-side client
@@ -193,7 +235,16 @@ export async function PATCH(request: NextRequest) {
             .single()
         
         if (updateError) {
-            throw updateError
+            console.error('Failed to update profile:', updateError)
+            return NextResponse.json(
+                { error: updateError.message || 'Failed to update profile' },
+                { 
+                    status: 500,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                }
+            )
         }
         
         // Update additional trades if provided
@@ -218,14 +269,22 @@ export async function PATCH(request: NextRequest) {
         }
         
         return NextResponse.json(profile, {
+            status: 200,
             headers: {
                 'Content-Type': 'application/json',
+                'Cache-Control': 'no-store',
             },
         })
     } catch (error) {
+        console.error('API route error:', error)
         return NextResponse.json(
             { error: error instanceof Error ? error.message : 'Internal server error' },
-            { status: 500 }
+            { 
+                status: 500,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }
         )
     }
 }
