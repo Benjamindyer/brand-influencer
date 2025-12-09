@@ -102,7 +102,7 @@ export function Navigation() {
     }
     
     const navLinks = getNavLinks()
-    const isAuthPage = pathname?.startsWith('/login') || pathname?.startsWith('/register')
+    const isAuthPage = pathname?.startsWith('/auth')
     
     if (isAuthPage || !user) {
         return (

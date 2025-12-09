@@ -19,12 +19,12 @@ export default function Home() {
                             The premier platform for authentic partnerships in the construction and building industry
                         </p>
                         <div className='flex flex-col sm:flex-row gap-4 justify-center'>
-                            <Link href='/register'>
+                            <Link href='/auth/register'>
                                 <Button variant='primary' size='lg' className='min-w-[160px]'>
                                     Get Started Free
                                 </Button>
                             </Link>
-                            <Link href='/login'>
+                            <Link href='/auth/login'>
                                 <Button variant='outline' size='lg' className='min-w-[160px]'>
                                     Sign In
                                 </Button>
@@ -200,7 +200,7 @@ export default function Home() {
                         Join brands and creators already using Brand Influencer to build meaningful partnerships
                     </p>
                     <div className='flex flex-col sm:flex-row gap-4 justify-center'>
-                        <Link href='/register'>
+                        <Link href='/auth/register'>
                             <Button 
                                 variant='outline' 
                                 size='lg' 
@@ -209,7 +209,7 @@ export default function Home() {
                                 Create Account
                             </Button>
                         </Link>
-                        <Link href='/login'>
+                        <Link href='/auth/login'>
                             <Button 
                                 variant='outline' 
                                 size='lg' 

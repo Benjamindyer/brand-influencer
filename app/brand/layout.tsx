@@ -26,7 +26,7 @@ export default async function BrandLayout({
     } = await supabase.auth.getUser()
     
     if (!user) {
-        redirect('/login')
+        redirect('/auth/login')
     }
     
     const { data: profile } = await supabase
