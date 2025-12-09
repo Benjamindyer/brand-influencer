@@ -18,6 +18,9 @@ export function Navigation() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
     
     useEffect(() => {
+        // Only run in browser
+        if (typeof window === 'undefined') return
+        
         loadUser()
         
         const {
@@ -33,6 +36,9 @@ export function Navigation() {
     
     async function loadUser() {
         try {
+            // Only run in browser
+            if (typeof window === 'undefined') return
+            
             const {
                 data: { user: authUser },
             } = await supabase.auth.getUser()

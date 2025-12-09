@@ -24,12 +24,15 @@ export default function CreatorDashboard() {
     useEffect(() => {
         async function loadData() {
             try {
+                // Only run in browser
+                if (typeof window === 'undefined') return
+                
                 const {
                     data: { user },
                 } = await supabase.auth.getUser()
                 
                 if (!user) {
-                    router.push('/login')
+                    router.push('/auth/login')
                     return
                 }
                 
