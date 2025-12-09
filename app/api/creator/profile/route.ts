@@ -8,10 +8,19 @@ export async function GET(request: NextRequest) {
         
         const {
             data: { user },
+            error: authError,
         } = await supabase.auth.getUser()
         
-        if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        if (authError || !user) {
+            return NextResponse.json(
+                { error: 'Unauthorized' },
+                { 
+                    status: 401,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                }
+            )
         }
         
         // Use server-side client directly instead of getCreatorProfile
@@ -28,14 +37,43 @@ export async function GET(request: NextRequest) {
             .single()
         
         if (error) {
+            // Handle specific Supabase error codes
             if (error.code === 'PGRST116') {
-                return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
+                return NextResponse.json(
+                    { error: 'Profile not found' },
+                    { 
+                        status: 404,
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    }
+                )
             }
-            throw error
+            
+            // Log the error for debugging
+            console.error('Supabase query error:', error)
+            
+            return NextResponse.json(
+                { error: error.message || 'Failed to fetch profile' },
+                { 
+                    status: 500,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                }
+            )
         }
         
         if (!data) {
-            return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
+            return NextResponse.json(
+                { error: 'Profile not found' },
+                { 
+                    status: 404,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                }
+            )
         }
         
         const profile = {
@@ -45,11 +83,14 @@ export async function GET(request: NextRequest) {
         }
         
         return NextResponse.json(profile, {
+            status: 200,
             headers: {
                 'Content-Type': 'application/json',
+                'Cache-Control': 'no-store',
             },
         })
     } catch (error) {
+        console.error('API route error:', error)
         return NextResponse.json(
             { error: error instanceof Error ? error.message : 'Internal server error' },
             { 
