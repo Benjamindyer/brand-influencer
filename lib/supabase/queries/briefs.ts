@@ -102,7 +102,7 @@ export async function getBriefsForCreator(creatorId: string) {
     }
     
     // Filter briefs that match creator's profile
-    const matchingBriefs = (briefs || []).filter((brief) => {
+    const matchingBriefs = (briefs || []).filter((brief: any) => {
         if (!brief.targeting || brief.targeting.length === 0) return true
         
         return brief.targeting.some((target: any) => {

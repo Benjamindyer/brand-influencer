@@ -48,7 +48,7 @@ export async function searchCreators(filters: SearchFilters, page = 1, pageSize 
     let filtered = data || []
     
     if (filters.platforms && filters.platforms.length > 0) {
-        filtered = filtered.filter((creator) => {
+        filtered = filtered.filter((creator: any) => {
             return creator.social_accounts?.some((account: any) =>
                 filters.platforms!.includes(account.platform)
             )
@@ -56,7 +56,7 @@ export async function searchCreators(filters: SearchFilters, page = 1, pageSize 
     }
     
     if (filters.min_followers || filters.max_followers) {
-        filtered = filtered.filter((creator) => {
+        filtered = filtered.filter((creator: any) => {
             const totalFollowers = creator.social_accounts?.reduce(
                 (sum: number, account: any) => sum + (account.follower_count || 0),
                 0
@@ -69,7 +69,7 @@ export async function searchCreators(filters: SearchFilters, page = 1, pageSize 
     }
     
     if (filters.min_engagement || filters.max_engagement) {
-        filtered = filtered.filter((creator) => {
+        filtered = filtered.filter((creator: any) => {
             const avgEngagement = creator.social_accounts?.reduce(
                 (sum: number, account: any, _: any, arr: any[]) =>
                     sum + (account.engagement_rate || 0) / arr.length,
