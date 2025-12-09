@@ -23,14 +23,19 @@ export function Navigation() {
         
         loadUser()
         
-        const {
-            data: { subscription },
-        } = supabase.auth.onAuthStateChange(() => {
-            loadUser()
-        })
-        
-        return () => {
-            subscription.unsubscribe()
+        try {
+            const {
+                data: { subscription },
+            } = supabase.auth.onAuthStateChange(() => {
+                loadUser()
+            })
+            
+            return () => {
+                subscription.unsubscribe()
+            }
+        } catch (error) {
+            // Silently handle if client isn't available
+            console.warn('Failed to set up auth state listener:', error)
         }
     }, [])
     
@@ -41,25 +46,34 @@ export function Navigation() {
             
             const {
                 data: { user: authUser },
+                error: authError,
             } = await supabase.auth.getUser()
             
-            if (!authUser) {
+            if (authError || !authUser) {
                 setUser(null)
                 setRole(null)
+                setLoading(false)
                 return
             }
             
             setUser(authUser)
             
-            const { data: profile } = await supabase
+            const { data: profile, error: profileError } = await supabase
                 .from('user_profiles')
                 .select('role')
                 .eq('id', authUser.id)
                 .single()
             
+            if (profileError) {
+                console.warn('Failed to load user profile:', profileError)
+            }
+            
             setRole(profile?.role || null)
         } catch (error) {
-            console.error('Failed to load user:', error)
+            // Silently handle CORS/auth errors
+            console.warn('Failed to load user:', error)
+            setUser(null)
+            setRole(null)
         } finally {
             setLoading(false)
         }

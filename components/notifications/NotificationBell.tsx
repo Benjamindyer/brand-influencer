@@ -10,16 +10,24 @@ export function NotificationBell() {
     const [isAuthenticated, setIsAuthenticated] = useState(false)
     
     useEffect(() => {
+        // Only run in browser
+        if (typeof window === 'undefined') return
+        
         checkAuth()
         
-        const {
-            data: { subscription },
-        } = supabase.auth.onAuthStateChange(() => {
-            checkAuth()
-        })
-        
-        return () => {
-            subscription.unsubscribe()
+        try {
+            const {
+                data: { subscription },
+            } = supabase.auth.onAuthStateChange(() => {
+                checkAuth()
+            })
+            
+            return () => {
+                subscription.unsubscribe()
+            }
+        } catch (error) {
+            // Silently handle if client isn't available
+            console.warn('Failed to set up auth state listener:', error)
         }
     }, [])
     
@@ -33,11 +41,22 @@ export function NotificationBell() {
     
     async function checkAuth() {
         try {
+            // Only run in browser
+            if (typeof window === 'undefined') return
+            
             const {
                 data: { user },
+                error,
             } = await supabase.auth.getUser()
+            
+            if (error) {
+                setIsAuthenticated(false)
+                return
+            }
+            
             setIsAuthenticated(!!user)
         } catch (error) {
+            // Silently handle CORS/auth errors
             setIsAuthenticated(false)
         }
     }
