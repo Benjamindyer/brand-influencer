@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase/client'
 import { ProfileForm } from '@/components/creator/ProfileForm'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
 
@@ -19,15 +18,33 @@ export default function CreateProfilePage() {
     const [saving, setSaving] = useState(false)
     
     useEffect(() => {
-        async function loadTrades() {
+        async function loadData() {
             try {
-                const { data, error } = await supabase
-                    .from('trades')
-                    .select('*')
-                    .order('name')
+                // Check auth via API route to avoid CORS
+                const authResponse = await fetch('/api/auth/status', {
+                    headers: { 'Accept': 'application/json' },
+                })
                 
-                if (error) throw error
-                setTrades(data || [])
+                if (!authResponse.ok) {
+                    router.push('/auth/login')
+                    return
+                }
+                
+                const authData = await authResponse.json()
+                if (!authData.authenticated) {
+                    router.push('/auth/login')
+                    return
+                }
+                
+                // Load trades via API route
+                const tradesResponse = await fetch('/api/trades', {
+                    headers: { 'Accept': 'application/json' },
+                })
+                
+                if (tradesResponse.ok) {
+                    const tradesData = await tradesResponse.json()
+                    setTrades(Array.isArray(tradesData) ? tradesData : [])
+                }
             } catch (error) {
                 console.error('Failed to load trades:', error)
             } finally {
@@ -35,8 +52,8 @@ export default function CreateProfilePage() {
             }
         }
         
-        loadTrades()
-    }, [])
+        loadData()
+    }, [router])
     
     const handleSubmit = async (profileData: any) => {
         setSaving(true)
@@ -45,6 +62,7 @@ export default function CreateProfilePage() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json',
                 },
                 body: JSON.stringify(profileData),
             })
@@ -89,4 +107,3 @@ export default function CreateProfilePage() {
         </div>
     )
 }
-

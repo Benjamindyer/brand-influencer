@@ -2,8 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
-import { supabase } from '@/lib/supabase/client'
-import { signOut } from '@/lib/auth/helpers'
 import { Button } from '@/components/ui/Button'
 import { NotificationBell } from '@/components/notifications/NotificationBell'
 import { Avatar } from '@/components/ui/Avatar'
@@ -24,86 +22,34 @@ export function Navigation() {
             return
         }
         
-        // Check if supabase client is available
-        if (!supabase || typeof supabase.auth === 'undefined') {
-            setLoading(false)
-            return
-        }
-        
         loadUser()
-        
-        try {
-            const {
-                data: { subscription },
-            } = supabase.auth.onAuthStateChange(() => {
-                loadUser()
-            })
-            
-            return () => {
-                subscription.unsubscribe()
-            }
-        } catch (error) {
-            // Silently handle if client isn't available
-            console.warn('Failed to set up auth state listener:', error)
-            setLoading(false)
-        }
     }, [])
     
     async function loadUser() {
         try {
-            // Only run in browser
-            if (typeof window === 'undefined') {
-                setLoading(false)
-                return
-            }
+            // Use API route instead of direct Supabase call to avoid CORS
+            const response = await fetch('/api/auth/status', {
+                headers: { 'Accept': 'application/json' },
+            })
             
-            // Check if supabase client is available
-            if (!supabase || typeof supabase.auth === 'undefined') {
-                setLoading(false)
-                return
-            }
-            
-            const {
-                data: { user: authUser },
-                error: authError,
-            } = await supabase.auth.getUser()
-            
-            if (authError) {
-                // Log the actual error for debugging
-                if (authError.message && !authError.message.includes('CORS')) {
-                    console.warn('Auth error:', authError.message)
-                }
+            if (!response.ok) {
                 setUser(null)
                 setRole(null)
                 setLoading(false)
                 return
             }
             
-            if (!authUser) {
+            const data = await response.json()
+            
+            if (data.authenticated && data.user) {
+                setUser(data.user)
+                setRole(data.user.role)
+            } else {
                 setUser(null)
                 setRole(null)
-                setLoading(false)
-                return
             }
-            
-            setUser(authUser)
-            
-            const { data: profile, error: profileError } = await supabase
-                .from('user_profiles')
-                .select('role')
-                .eq('id', authUser.id)
-                .single()
-            
-            if (profileError) {
-                console.warn('Failed to load user profile:', profileError.message)
-            }
-            
-            setRole(profile?.role || null)
-        } catch (error: any) {
-            // Only log non-CORS errors
-            if (error?.message && !error.message.includes('Load failed') && !error.message.includes('CORS')) {
-                console.warn('Failed to load user:', error.message)
-            }
+        } catch (error) {
+            // Silently handle errors
             setUser(null)
             setRole(null)
         } finally {
@@ -113,10 +59,18 @@ export function Navigation() {
     
     async function handleSignOut() {
         try {
-            await signOut()
+            // Call a sign-out API route
+            await fetch('/api/auth/signout', {
+                method: 'POST',
+                headers: { 'Accept': 'application/json' },
+            })
+            setUser(null)
+            setRole(null)
             router.push('/auth/login')
         } catch (error) {
             console.error('Failed to sign out:', error)
+            // Still redirect even if sign out fails
+            router.push('/auth/login')
         }
     }
     
@@ -273,4 +227,3 @@ export function Navigation() {
         </nav>
     )
 }
-

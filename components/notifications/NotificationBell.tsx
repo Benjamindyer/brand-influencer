@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase/client'
 import { NotificationDropdown } from './NotificationDropdown'
 
 export function NotificationBell() {
@@ -14,21 +13,6 @@ export function NotificationBell() {
         if (typeof window === 'undefined') return
         
         checkAuth()
-        
-        try {
-            const {
-                data: { subscription },
-            } = supabase.auth.onAuthStateChange(() => {
-                checkAuth()
-            })
-            
-            return () => {
-                subscription.unsubscribe()
-            }
-        } catch (error) {
-            // Silently handle if client isn't available
-            console.warn('Failed to set up auth state listener:', error)
-        }
     }, [])
     
     useEffect(() => {
@@ -41,22 +25,20 @@ export function NotificationBell() {
     
     async function checkAuth() {
         try {
-            // Only run in browser
-            if (typeof window === 'undefined') return
+            // Use API route instead of direct Supabase call to avoid CORS
+            const response = await fetch('/api/auth/status', {
+                headers: { 'Accept': 'application/json' },
+            })
             
-            const {
-                data: { user },
-                error,
-            } = await supabase.auth.getUser()
-            
-            if (error) {
+            if (!response.ok) {
                 setIsAuthenticated(false)
                 return
             }
             
-            setIsAuthenticated(!!user)
+            const data = await response.json()
+            setIsAuthenticated(data.authenticated)
         } catch (error) {
-            // Silently handle CORS/auth errors
+            // Silently handle errors
             setIsAuthenticated(false)
         }
     }
@@ -65,7 +47,9 @@ export function NotificationBell() {
         if (!isAuthenticated) return
         
         try {
-            const response = await fetch('/api/notifications')
+            const response = await fetch('/api/notifications', {
+                headers: { 'Accept': 'application/json' },
+            })
             if (!response.ok) {
                 if (response.status === 401) {
                     setIsAuthenticated(false)
@@ -116,4 +100,3 @@ export function NotificationBell() {
         </div>
     )
 }
-

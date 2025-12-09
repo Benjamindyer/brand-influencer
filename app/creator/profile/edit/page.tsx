@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase/client'
 import { ProfileForm } from '@/components/creator/ProfileForm'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
 import type { CreatorProfileWithTrades } from '@/types/creator'
@@ -23,47 +22,50 @@ export default function EditProfilePage() {
     useEffect(() => {
         async function loadData() {
             try {
-                // Check if supabase client is available
-                if (!supabase || typeof supabase.auth === 'undefined') {
+                // Check auth via API route to avoid CORS
+                const authResponse = await fetch('/api/auth/status', {
+                    headers: { 'Accept': 'application/json' },
+                })
+                
+                if (!authResponse.ok) {
                     router.push('/auth/login')
                     return
                 }
                 
-                const {
-                    data: { user },
-                    error: authError,
-                } = await supabase.auth.getUser()
-                
-                if (authError || !user) {
-                    // Silently handle CORS/auth errors
-                    if (authError && !authError.message?.includes('Load failed') && !authError.message?.includes('CORS')) {
-                        console.warn('Auth error:', authError.message)
-                    }
+                const authData = await authResponse.json()
+                if (!authData.authenticated) {
                     router.push('/auth/login')
                     return
                 }
                 
-                // Use API route instead of direct Supabase query to avoid CORS/406 errors
-                const [profileResponse, tradesData] = await Promise.all([
+                // Fetch profile and trades via API routes
+                const [profileResponse, tradesResponse] = await Promise.all([
                     fetch('/api/creator/profile', {
-                        headers: {
-                            'Accept': 'application/json',
-                        },
+                        headers: { 'Accept': 'application/json' },
                     }),
-                    supabase.from('trades').select('*').order('name'),
+                    fetch('/api/trades', {
+                        headers: { 'Accept': 'application/json' },
+                    }),
                 ])
                 
-                if (tradesData.error) throw tradesData.error
-                
-                let profileData = null
-                if (profileResponse.ok) {
-                    profileData = await profileResponse.json()
-                } else if (profileResponse.status !== 404) {
-                    throw new Error(`Failed to load profile: ${profileResponse.status}`)
+                // Handle trades
+                if (tradesResponse.ok) {
+                    const tradesData = await tradesResponse.json()
+                    setTrades(Array.isArray(tradesData) ? tradesData : [])
                 }
                 
-                setProfile(profileData)
-                setTrades(tradesData.data || [])
+                // Handle profile
+                if (profileResponse.ok) {
+                    const profileData = await profileResponse.json()
+                    setProfile(profileData)
+                } else if (profileResponse.status === 404) {
+                    // Profile doesn't exist, redirect to create
+                    router.push('/creator/profile/create')
+                    return
+                } else if (profileResponse.status === 401) {
+                    router.push('/auth/login')
+                    return
+                }
             } catch (error) {
                 console.error('Failed to load data:', error)
             } finally {
@@ -81,6 +83,7 @@ export default function EditProfilePage() {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json',
                 },
                 body: JSON.stringify(profileData),
             })
@@ -107,7 +110,6 @@ export default function EditProfilePage() {
     }
     
     if (!profile) {
-        router.push('/creator/profile/create')
         return null
     }
     
@@ -131,4 +133,3 @@ export default function EditProfilePage() {
         </div>
     )
 }
-

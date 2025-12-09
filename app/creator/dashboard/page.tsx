@@ -2,13 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase/client'
-import { getCreatorProfile } from '@/lib/supabase/queries/creator'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { MetricCard } from '@/components/ui/MetricCard'
-import { TaskCard } from '@/components/ui/TaskCard'
 import Link from 'next/link'
 
 export default function CreatorDashboard() {
@@ -27,58 +24,54 @@ export default function CreatorDashboard() {
                 // Only run in browser
                 if (typeof window === 'undefined') return
                 
-                // Check if supabase client is available
-                if (!supabase || typeof supabase.auth === 'undefined') {
-                    router.push('/auth/login')
-                    return
-                }
-                
-                const {
-                    data: { user },
-                    error: authError,
-                } = await supabase.auth.getUser()
-                
-                if (authError || !user) {
-                    // Silently handle CORS/auth errors
-                    if (authError && !authError.message?.includes('Load failed') && !authError.message?.includes('CORS')) {
-                        console.warn('Auth error:', authError.message)
-                    }
-                    router.push('/auth/login')
-                    return
-                }
-                
-                // Use API route instead of direct Supabase query to avoid CORS/406 errors
-                const response = await fetch('/api/creator/profile', {
-                    headers: {
-                        'Accept': 'application/json',
-                    },
+                // Check auth status via API route to avoid CORS
+                const authResponse = await fetch('/api/auth/status', {
+                    headers: { 'Accept': 'application/json' },
                 })
                 
-                let profileData = null
-                if (!response.ok) {
-                    if (response.status === 404) {
-                        // Profile doesn't exist yet - that's okay
-                        setProfile(null)
-                    } else {
-                        throw new Error(`Failed to load profile: ${response.status}`)
-                    }
-                } else {
-                    profileData = await response.json()
-                    setProfile(profileData)
+                if (!authResponse.ok) {
+                    router.push('/auth/login')
+                    return
                 }
                 
-                if (profileData) {
-                    const { data: applications } = await supabase
-                        .from('applications')
-                        .select('status')
-                        .eq('creator_id', profileData.id)
+                const authData = await authResponse.json()
+                
+                if (!authData.authenticated) {
+                    router.push('/auth/login')
+                    return
+                }
+                
+                // Get profile via API route
+                const profileResponse = await fetch('/api/creator/profile', {
+                    headers: { 'Accept': 'application/json' },
+                })
+                
+                if (!profileResponse.ok) {
+                    if (profileResponse.status === 404) {
+                        // Profile doesn't exist yet - that's okay
+                        setProfile(null)
+                    } else if (profileResponse.status === 401) {
+                        router.push('/auth/login')
+                        return
+                    }
+                } else {
+                    const profileData = await profileResponse.json()
+                    setProfile(profileData)
                     
-                    if (applications) {
-                        setStats({
-                            applications: applications.length,
-                            accepted: applications.filter((a: any) => a.status === 'accepted').length,
-                            pending: applications.filter((a: any) => a.status === 'pending').length,
-                        })
+                    // Get applications via API route
+                    const appsResponse = await fetch('/api/creator/applications', {
+                        headers: { 'Accept': 'application/json' },
+                    })
+                    
+                    if (appsResponse.ok) {
+                        const applications = await appsResponse.json()
+                        if (Array.isArray(applications)) {
+                            setStats({
+                                applications: applications.length,
+                                accepted: applications.filter((a: any) => a.status === 'accepted').length,
+                                pending: applications.filter((a: any) => a.status === 'pending').length,
+                            })
+                        }
                     }
                 }
             } catch (error) {
@@ -215,4 +208,3 @@ export default function CreatorDashboard() {
         </div>
     )
 }
-
