@@ -4,10 +4,11 @@ import { supabaseAdmin } from '@/lib/supabase/server'
 
 export async function PATCH(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const supabase = await createApiClient()
+        const { id } = await params
         
         const {
             data: { user },
@@ -32,13 +33,13 @@ export async function PATCH(
         
         if (action === 'suspend' || action === 'ban') {
             // Update user metadata to mark as suspended/banned
-            await supabaseAdmin.auth.admin.updateUserById(params.id, {
+            await supabaseAdmin.auth.admin.updateUserById(id, {
                 user_metadata: {
                     status: action,
                 },
             })
         } else if (action === 'reactivate') {
-            await supabaseAdmin.auth.admin.updateUserById(params.id, {
+            await supabaseAdmin.auth.admin.updateUserById(id, {
                 user_metadata: {
                     status: 'active',
                 },

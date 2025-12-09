@@ -4,10 +4,11 @@ import { supabaseAdmin } from '@/lib/supabase/server'
 
 export async function PATCH(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const supabase = await createApiClient()
+        const { id } = await params
         
         const {
             data: { user },
@@ -33,7 +34,7 @@ export async function PATCH(
         const { data, error } = await supabaseAdmin
             .from('subscriptions')
             .update({ campaign_credits })
-            .eq('id', params.id)
+            .eq('id', id)
             .select()
             .single()
         

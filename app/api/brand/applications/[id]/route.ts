@@ -3,10 +3,11 @@ import { createApiClient } from '@/lib/supabase/api-client'
 
 export async function PATCH(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const supabase = await createApiClient()
+        const { id } = await params
         
         const {
             data: { user },
@@ -36,7 +37,7 @@ export async function PATCH(
                 *,
                 brief:briefs!inner(brand_id)
             `)
-            .eq('id', params.id)
+            .eq('id', id)
             .single()
         
         if (!application || application.brief.brand_id !== brandProfile.id) {
@@ -47,7 +48,7 @@ export async function PATCH(
         const { data: updated, error: updateError } = await supabase
             .from('applications')
             .update({ status })
-            .eq('id', params.id)
+            .eq('id', id)
             .select()
             .single()
         
