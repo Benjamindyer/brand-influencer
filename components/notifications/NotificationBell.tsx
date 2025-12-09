@@ -1,22 +1,58 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { supabase } from '@/lib/supabase/client'
 import { NotificationDropdown } from './NotificationDropdown'
 
 export function NotificationBell() {
     const [count, setCount] = useState(0)
     const [showDropdown, setShowDropdown] = useState(false)
+    const [isAuthenticated, setIsAuthenticated] = useState(false)
     
     useEffect(() => {
-        loadUnreadCount()
-        const interval = setInterval(loadUnreadCount, 30000) // Refresh every 30 seconds
-        return () => clearInterval(interval)
+        checkAuth()
+        
+        const {
+            data: { subscription },
+        } = supabase.auth.onAuthStateChange(() => {
+            checkAuth()
+        })
+        
+        return () => {
+            subscription.unsubscribe()
+        }
     }, [])
     
+    useEffect(() => {
+        if (isAuthenticated) {
+            loadUnreadCount()
+            const interval = setInterval(loadUnreadCount, 30000) // Refresh every 30 seconds
+            return () => clearInterval(interval)
+        }
+    }, [isAuthenticated])
+    
+    async function checkAuth() {
+        try {
+            const {
+                data: { user },
+            } = await supabase.auth.getUser()
+            setIsAuthenticated(!!user)
+        } catch (error) {
+            setIsAuthenticated(false)
+        }
+    }
+    
     async function loadUnreadCount() {
+        if (!isAuthenticated) return
+        
         try {
             const response = await fetch('/api/notifications')
-            if (!response.ok) return
+            if (!response.ok) {
+                if (response.status === 401) {
+                    setIsAuthenticated(false)
+                }
+                return
+            }
             
             const notifications = await response.json()
             const unread = notifications.filter((n: any) => !n.read).length
@@ -24,6 +60,10 @@ export function NotificationBell() {
         } catch (error) {
             console.error('Failed to load notifications:', error)
         }
+    }
+    
+    if (!isAuthenticated) {
+        return null
     }
     
     return (

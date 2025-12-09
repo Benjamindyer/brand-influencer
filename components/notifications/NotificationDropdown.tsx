@@ -28,7 +28,13 @@ export function NotificationDropdown({ onClose }: NotificationDropdownProps) {
     async function loadNotifications() {
         try {
             const response = await fetch('/api/notifications')
-            if (!response.ok) return
+            if (!response.ok) {
+                if (response.status === 401) {
+                    // User not authenticated, close dropdown
+                    onClose()
+                }
+                return
+            }
             
             const data = await response.json()
             setNotifications(data)
@@ -59,18 +65,18 @@ export function NotificationDropdown({ onClose }: NotificationDropdownProps) {
     
     if (loading) {
         return (
-            <div className='absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-[var(--color-neutral-200)] p-4'>
+            <div className='absolute right-0 mt-2 w-80 bg-[var(--color-bg-card)] rounded-lg shadow-lg border border-[var(--color-border)] p-4 z-50'>
                 <p className='text-sm text-[var(--color-text-secondary)]'>Loading...</p>
             </div>
         )
     }
     
     return (
-        <div className='absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-[var(--color-neutral-200)] max-h-96 overflow-y-auto'>
-            <div className='p-4 border-b border-[var(--color-neutral-200)]'>
-                <h3 className='font-semibold'>Notifications</h3>
+        <div className='absolute right-0 mt-2 w-80 bg-[var(--color-bg-card)] rounded-lg shadow-lg border border-[var(--color-border)] max-h-96 overflow-y-auto z-50'>
+            <div className='p-4 border-b border-[var(--color-border)]'>
+                <h3 className='font-semibold text-[var(--color-text-primary)]'>Notifications</h3>
             </div>
-            <div className='divide-y divide-[var(--color-neutral-200)]'>
+            <div className='divide-y divide-[var(--color-border)]'>
                 {notifications.length === 0 ? (
                     <div className='p-4 text-center text-sm text-[var(--color-text-tertiary)]'>
                         No notifications
@@ -79,13 +85,13 @@ export function NotificationDropdown({ onClose }: NotificationDropdownProps) {
                     notifications.map((notification) => (
                         <div
                             key={notification.id}
-                            className={`p-4 hover:bg-[var(--color-neutral-50)] cursor-pointer ${
-                                !notification.read ? 'bg-blue-50' : ''
+                            className={`p-4 hover:bg-[var(--color-bg-hover)] cursor-pointer ${
+                                !notification.read ? 'bg-[var(--color-primary-600)]/10' : ''
                             }`}
                             onClick={() => !notification.read && markAsRead(notification.id)}
                         >
                             <div className='flex items-start justify-between mb-1'>
-                                <h4 className='font-medium text-sm'>{notification.title}</h4>
+                                <h4 className='font-medium text-sm text-[var(--color-text-primary)]'>{notification.title}</h4>
                                 {!notification.read && (
                                     <Badge variant='info' size='sm'>New</Badge>
                                 )}
