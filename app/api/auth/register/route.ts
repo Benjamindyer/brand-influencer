@@ -6,11 +6,19 @@ import type { UserRole } from '@/types/auth'
 export async function POST(request: NextRequest) {
     try {
         // Check if Supabase environment variables are configured
-        if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+        const missingVars = []
+        if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+            missingVars.push('NEXT_PUBLIC_SUPABASE_URL')
+        }
+        if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+            missingVars.push('SUPABASE_SERVICE_ROLE_KEY')
+        }
+        
+        if (missingVars.length > 0) {
             return NextResponse.json(
                 { 
-                    error: 'Server configuration error: Missing Supabase environment variables. Please contact the administrator or check Vercel environment variables.',
-                    details: 'Required: NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY'
+                    error: `Server configuration error: Missing required environment variables: ${missingVars.join(', ')}. Please add these in your Vercel project settings (Settings > Environment Variables) and redeploy.`,
+                    details: `Missing: ${missingVars.join(', ')}`
                 },
                 { status: 500 }
             )

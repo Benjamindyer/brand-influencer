@@ -1,6 +1,6 @@
-import { createClient } from '@supabase/supabase-js'
+import { createBrowserClient } from '@supabase/ssr'
 
-// Client-side Supabase client
+// Client-side Supabase client using SSR package for proper cookie handling
 // NEXT_PUBLIC_ env vars are available at build time and runtime
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -15,9 +15,9 @@ if (!supabaseUrl || !supabaseAnonKey) {
     )
 }
 
-// Create client with error handling
-// If env vars are missing, createClient will fail on first use with a clear error
-export const supabase = createClient(
+// Create browser client with proper cookie handling
+// This fixes CORS issues by properly managing authentication cookies
+export const supabase = createBrowserClient(
     supabaseUrl || 'https://placeholder.supabase.co',
     supabaseAnonKey || 'placeholder-key'
 )
