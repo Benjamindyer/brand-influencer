@@ -76,14 +76,22 @@ export default function RegisterPage() {
                 }
             }
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'An error occurred')
+            let errorMessage = 'An error occurred'
+            if (err instanceof Error) {
+                errorMessage = err.message
+                // Provide more helpful error messages
+                if (err.message.includes('Missing Supabase') || err.message.includes('configuration error')) {
+                    errorMessage = 'Server configuration error. Please contact the administrator.'
+                }
+            }
+            setError(errorMessage)
         } finally {
             setLoading(false)
         }
     }
     
     return (
-        <div className='min-h-screen flex items-center justify-center bg-[var(--color-neutral-100)] p-4'>
+        <div className='min-h-screen flex items-center justify-center bg-transparent p-4'>
             <Card className='w-full max-w-md'>
                 <CardHeader>
                     <CardTitle>Create an Account</CardTitle>
@@ -135,7 +143,7 @@ export default function RegisterPage() {
                             {loading ? 'Creating Account...' : 'Register'}
                         </Button>
                         
-                        <p className='text-sm text-center text-[var(--color-neutral-600)]'>
+                        <p className='text-sm text-center text-[var(--color-text-secondary)]'>
                             Already have an account?{' '}
                             <a href='/auth/login' className='text-[var(--color-primary-600)] hover:underline'>
                                 Sign in

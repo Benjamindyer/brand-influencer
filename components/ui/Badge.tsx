@@ -14,11 +14,11 @@ export const Badge: React.FC<BadgeProps> = ({
     className = '',
 }) => {
     const variants = {
-        default: 'bg-[var(--color-neutral-200)] text-[var(--color-neutral-800)]',
-        success: 'bg-[var(--color-success-100)] text-[var(--color-success-800)]',
-        error: 'bg-[var(--color-error-100)] text-[var(--color-error-800)]',
-        warning: 'bg-yellow-100 text-yellow-800',
-        info: 'bg-[var(--color-primary-100)] text-[var(--color-primary-800)]',
+        default: 'bg-[var(--color-bg-tertiary)] text-[var(--color-text-secondary)] border border-[var(--color-border-light)]',
+        success: 'bg-[var(--color-success-500)]/20 text-[var(--color-success-500)] border border-[var(--color-success-500)]/30',
+        error: 'bg-[var(--color-error-500)]/20 text-[var(--color-error-500)] border border-[var(--color-error-500)]/30',
+        warning: 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30',
+        info: 'bg-[var(--color-primary-600)]/20 text-[var(--color-primary-500)] border border-[var(--color-primary-500)]/30',
     }
     
     const sizes = {

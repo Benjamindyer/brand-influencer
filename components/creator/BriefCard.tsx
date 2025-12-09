@@ -37,18 +37,18 @@ export function BriefCard({ brief }: BriefCardProps) {
                             </Badge>
                         </div>
                         {brief.brand && (
-                            <p className='text-sm text-[var(--color-neutral-600)] mb-2'>
+                            <p className='text-sm text-[var(--color-text-secondary)] mb-2'>
                                 {brief.brand.company_name}
                             </p>
                         )}
-                        <p className='text-[var(--color-neutral-700)] line-clamp-3 mb-4'>
+                        <p className='text-[var(--color-text-secondary)] line-clamp-3 mb-4'>
                             {brief.description}
                         </p>
                     </div>
                 </div>
                 
                 <div className='flex items-center justify-between'>
-                    <div className='text-sm text-[var(--color-neutral-600)]'>
+                    <div className='text-sm text-[var(--color-text-secondary)]'>
                         {brief.compensation_type && (
                             <div>
                                 Compensation: {brief.compensation_type}

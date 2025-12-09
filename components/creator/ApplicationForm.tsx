@@ -63,7 +63,7 @@ export function ApplicationForm({ briefId, onSubmit, loading = false }: Applicat
             />
             
             <div>
-                <label className='block text-sm font-medium text-[var(--color-neutral-700)] mb-2'>
+                <label className='block text-sm font-medium text-[var(--color-text-secondary)] mb-2'>
                     Links (Optional)
                 </label>
                 {links.map((link, index) => (

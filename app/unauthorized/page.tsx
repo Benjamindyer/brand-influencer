@@ -4,13 +4,13 @@ import Link from 'next/link'
 
 export default function UnauthorizedPage() {
     return (
-        <div className='min-h-screen flex items-center justify-center bg-[var(--color-neutral-100)] p-4'>
+        <div className='min-h-screen flex items-center justify-center bg-transparent p-4'>
             <Card className='w-full max-w-md'>
                 <CardHeader>
                     <CardTitle>Unauthorized</CardTitle>
                 </CardHeader>
                 <CardContent className='space-y-4'>
-                    <p className='text-[var(--color-neutral-600)]'>
+                    <p className='text-[var(--color-text-secondary)]'>
                         You don't have permission to access this page.
                     </p>
                     <Link href='/'>

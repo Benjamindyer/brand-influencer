@@ -68,12 +68,12 @@ export const Modal: React.FC<ModalProps> = ({
             >
                 {title && (
                     <div className='flex items-center justify-between p-6 border-b border-[var(--color-neutral-200)]'>
-                        <h2 className='text-2xl font-semibold text-[var(--color-neutral-900)]'>
+                        <h2 className='text-2xl font-semibold text-[var(--color-text-primary)]'>
                             {title}
                         </h2>
                         <button
                             onClick={onClose}
-                            className='text-[var(--color-neutral-500)] hover:text-[var(--color-neutral-900)] transition-colors'
+                            className='text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] transition-colors'
                             aria-label='Close modal'
                         >
                             <svg

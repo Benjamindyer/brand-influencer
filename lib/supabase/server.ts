@@ -11,7 +11,13 @@ function getSupabaseAdmin() {
     const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
     if (!supabaseUrl || !supabaseServiceRoleKey) {
-        throw new Error('Missing Supabase environment variables')
+        const missing = []
+        if (!supabaseUrl) missing.push('NEXT_PUBLIC_SUPABASE_URL')
+        if (!supabaseServiceRoleKey) missing.push('SUPABASE_SERVICE_ROLE_KEY')
+        throw new Error(
+            `Missing required Supabase environment variables: ${missing.join(', ')}. ` +
+            'Please configure these in your Vercel project settings under Environment Variables.'
+        )
     }
 
     supabaseAdminInstance = createClient(supabaseUrl, supabaseServiceRoleKey, {

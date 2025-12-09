@@ -35,7 +35,7 @@ export const Avatar: React.FC<AvatarProps> = ({
             className={`
                 ${sizes[size]} rounded-full
                 flex items-center justify-center
-                bg-[var(--color-neutral-200)] text-[var(--color-neutral-700)]
+                bg-[var(--color-neutral-200)] text-[var(--color-text-secondary)]
                 overflow-hidden
                 ${className}
             `}

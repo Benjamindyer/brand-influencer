@@ -18,7 +18,7 @@ export function CreatorSearchResults({ creators, loading = false }: CreatorSearc
     
     if (creators.length === 0) {
         return (
-            <div className='text-center py-8 text-[var(--color-neutral-500)]'>
+            <div className='text-center py-8 text-[var(--color-text-tertiary)]'>
                 No creators found. Try adjusting your filters.
             </div>
         )

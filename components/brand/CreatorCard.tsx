@@ -68,7 +68,7 @@ export function CreatorCard({ creator }: CreatorCardProps) {
                                 </Badge>
                             ))}
                         </div>
-                        <div className='text-sm text-[var(--color-neutral-600)] space-y-1 mb-4'>
+                        <div className='text-sm text-[var(--color-text-secondary)] space-y-1 mb-4'>
                             {totalFollowers > 0 && (
                                 <div>Total Followers: {totalFollowers.toLocaleString()}</div>
                             )}

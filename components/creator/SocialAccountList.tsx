@@ -27,7 +27,7 @@ export function SocialAccountList({
 }: SocialAccountListProps) {
     if (accounts.length === 0) {
         return (
-            <div className='text-center py-8 text-[var(--color-neutral-500)]'>
+            <div className='text-center py-8 text-[var(--color-text-tertiary)]'>
                 No social accounts added yet
             </div>
         )
@@ -52,7 +52,7 @@ export function SocialAccountList({
                         >
                             {account.url}
                         </a>
-                        <div className='mt-2 text-sm text-[var(--color-neutral-600)] space-y-1'>
+                        <div className='mt-2 text-sm text-[var(--color-text-secondary)] space-y-1'>
                             {account.follower_count > 0 && (
                                 <div>Followers: {account.follower_count.toLocaleString()}</div>
                             )}

@@ -5,6 +5,17 @@ import type { UserRole } from '@/types/auth'
 
 export async function POST(request: NextRequest) {
     try {
+        // Check if Supabase environment variables are configured
+        if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+            return NextResponse.json(
+                { 
+                    error: 'Server configuration error: Missing Supabase environment variables. Please contact the administrator or check Vercel environment variables.',
+                    details: 'Required: NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY'
+                },
+                { status: 500 }
+            )
+        }
+
         const body = await request.json()
         const { email, password, role } = body
 

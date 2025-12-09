@@ -21,7 +21,7 @@ export const Input: React.FC<InputProps> = ({
             {label && (
                 <label
                     htmlFor={inputId}
-                    className='block text-sm font-medium text-[var(--color-neutral-700)] mb-1'
+                    className='block text-sm font-medium text-[var(--color-text-secondary)] mb-1'
                 >
                     {label}
                 </label>
@@ -30,19 +30,20 @@ export const Input: React.FC<InputProps> = ({
                 id={inputId}
                 className={`
                     w-full px-4 py-2 border rounded-md
-                    text-[var(--color-neutral-900)] bg-white
-                    focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)] focus:border-transparent
-                    disabled:bg-[var(--color-neutral-100)] disabled:cursor-not-allowed
-                    ${error ? 'border-[var(--color-error-500)]' : 'border-[var(--color-neutral-300)]'}
+                    text-[var(--color-text-primary)] bg-[var(--color-bg-tertiary)]
+                    border-[var(--color-border-light)]
+                    focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)] focus:border-[var(--color-primary-500)]
+                    disabled:bg-[var(--color-bg-secondary)] disabled:cursor-not-allowed disabled:opacity-50
+                    ${error ? 'border-[var(--color-error-500)]' : ''}
                     ${className}
                 `}
                 {...props}
             />
             {error && (
-                <p className='mt-1 text-sm text-[var(--color-error-600)]'>{error}</p>
+                <p className='mt-1 text-sm text-[var(--color-error-500)]'>{error}</p>
             )}
             {helperText && !error && (
-                <p className='mt-1 text-sm text-[var(--color-neutral-500)]'>{helperText}</p>
+                <p className='mt-1 text-sm text-[var(--color-text-muted)]'>{helperText}</p>
             )}
         </div>
     )
@@ -69,7 +70,7 @@ export const Textarea: React.FC<TextareaProps> = ({
             {label && (
                 <label
                     htmlFor={textareaId}
-                    className='block text-sm font-medium text-[var(--color-neutral-700)] mb-1'
+                    className='block text-sm font-medium text-[var(--color-text-secondary)] mb-1'
                 >
                     {label}
                 </label>
@@ -78,20 +79,21 @@ export const Textarea: React.FC<TextareaProps> = ({
                 id={textareaId}
                 className={`
                     w-full px-4 py-2 border rounded-md
-                    text-[var(--color-neutral-900)] bg-white
-                    focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)] focus:border-transparent
-                    disabled:bg-[var(--color-neutral-100)] disabled:cursor-not-allowed
+                    text-[var(--color-text-primary)] bg-[var(--color-bg-tertiary)]
+                    border-[var(--color-border-light)]
+                    focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)] focus:border-[var(--color-primary-500)]
+                    disabled:bg-[var(--color-bg-secondary)] disabled:cursor-not-allowed disabled:opacity-50
                     resize-y min-h-[100px]
-                    ${error ? 'border-[var(--color-error-500)]' : 'border-[var(--color-neutral-300)]'}
+                    ${error ? 'border-[var(--color-error-500)]' : ''}
                     ${className}
                 `}
                 {...props}
             />
             {error && (
-                <p className='mt-1 text-sm text-[var(--color-error-600)]'>{error}</p>
+                <p className='mt-1 text-sm text-[var(--color-error-500)]'>{error}</p>
             )}
             {helperText && !error && (
-                <p className='mt-1 text-sm text-[var(--color-neutral-500)]'>{helperText}</p>
+                <p className='mt-1 text-sm text-[var(--color-text-muted)]'>{helperText}</p>
             )}
         </div>
     )

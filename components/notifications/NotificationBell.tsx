@@ -30,7 +30,7 @@ export function NotificationBell() {
         <div className='relative'>
             <button
                 onClick={() => setShowDropdown(!showDropdown)}
-                className='relative p-2 text-[var(--color-neutral-700)] hover:text-[var(--color-neutral-900)]'
+                className='relative p-2 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
             >
                 <svg
                     className='w-6 h-6'

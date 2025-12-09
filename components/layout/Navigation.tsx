@@ -129,7 +129,9 @@ export function Navigation() {
     }
     
     return (
-        <nav className='border-b border-[var(--color-neutral-200)] bg-white sticky top-0 z-40'>
+        <nav className='border-b border-[var(--color-border)] bg-[var(--color-bg-secondary)] backdrop-blur-md sticky top-0 z-40' style={{
+            boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.3)',
+        }}>
             <div className='max-w-7xl mx-auto px-4 py-4'>
                 <div className='flex items-center justify-between'>
                     <Link href={role === 'creator' ? '/creator/dashboard' : role === 'brand' ? '/brand/dashboard' : '/admin/dashboard'} className='text-xl font-bold'>
@@ -144,7 +146,7 @@ export function Navigation() {
                                 className={`text-sm font-medium ${
                                     pathname === link.href
                                         ? 'text-[var(--color-primary-600)]'
-                                        : 'text-[var(--color-neutral-700)] hover:text-[var(--color-primary-600)]'
+                                        : 'text-[var(--color-text-secondary)] hover:text-[var(--color-primary-600)]'
                                 }`}
                             >
                                 {link.label}
@@ -197,8 +199,8 @@ export function Navigation() {
                                     onClick={() => setMobileMenuOpen(false)}
                                     className={`px-4 py-2 rounded-md ${
                                         pathname === link.href
-                                            ? 'bg-[var(--color-primary-50)] text-[var(--color-primary-600)]'
-                                            : 'text-[var(--color-neutral-700)] hover:bg-[var(--color-neutral-100)]'
+                                            ? 'bg-[var(--color-bg-hover)] text-[var(--color-primary-600)]'
+                                            : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-hover)]'
                                     }`}
                                 >
                                     {link.label}

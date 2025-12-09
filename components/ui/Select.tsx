@@ -30,7 +30,7 @@ export const Select: React.FC<SelectProps> = ({
             {label && (
                 <label
                     htmlFor={selectId}
-                    className='block text-sm font-medium text-[var(--color-neutral-700)] mb-1'
+                    className='block text-sm font-medium text-[var(--color-text-secondary)] mb-1'
                 >
                     {label}
                 </label>
@@ -39,10 +39,11 @@ export const Select: React.FC<SelectProps> = ({
                 id={selectId}
                 className={`
                     w-full px-4 py-2 border rounded-md
-                    text-[var(--color-neutral-900)] bg-white
-                    focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)] focus:border-transparent
-                    disabled:bg-[var(--color-neutral-100)] disabled:cursor-not-allowed
-                    ${error ? 'border-[var(--color-error-500)]' : 'border-[var(--color-neutral-300)]'}
+                    text-[var(--color-text-primary)] bg-[var(--color-bg-tertiary)]
+                    border-[var(--color-border-light)]
+                    focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)] focus:border-[var(--color-primary-500)]
+                    disabled:bg-[var(--color-bg-secondary)] disabled:cursor-not-allowed disabled:opacity-50
+                    ${error ? 'border-[var(--color-error-500)]' : ''}
                     ${className}
                 `}
                 {...props}
@@ -62,7 +63,7 @@ export const Select: React.FC<SelectProps> = ({
                 <p className='mt-1 text-sm text-[var(--color-error-600)]'>{error}</p>
             )}
             {helperText && !error && (
-                <p className='mt-1 text-sm text-[var(--color-neutral-500)]'>{helperText}</p>
+                <p className='mt-1 text-sm text-[var(--color-text-tertiary)]'>{helperText}</p>
             )}
         </div>
     )
@@ -99,7 +100,7 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
             {label && (
                 <label
                     htmlFor={selectId}
-                    className='block text-sm font-medium text-[var(--color-neutral-700)] mb-1'
+                    className='block text-sm font-medium text-[var(--color-text-secondary)] mb-1'
                 >
                     {label}
                 </label>
@@ -111,11 +112,12 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
                 onChange={handleChange}
                 className={`
                     w-full px-4 py-2 border rounded-md
-                    text-[var(--color-neutral-900)] bg-white
-                    focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)] focus:border-transparent
-                    disabled:bg-[var(--color-neutral-100)] disabled:cursor-not-allowed
+                    text-[var(--color-text-primary)] bg-[var(--color-bg-tertiary)]
+                    border-[var(--color-border-light)]
+                    focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)] focus:border-[var(--color-primary-500)]
+                    disabled:bg-[var(--color-bg-secondary)] disabled:cursor-not-allowed disabled:opacity-50
                     min-h-[100px]
-                    ${error ? 'border-[var(--color-error-500)]' : 'border-[var(--color-neutral-300)]'}
+                    ${error ? 'border-[var(--color-error-500)]' : ''}
                 `}
             >
                 {options.map((option) => (
@@ -128,7 +130,7 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
                 <p className='mt-1 text-sm text-[var(--color-error-600)]'>{error}</p>
             )}
             {helperText && !error && (
-                <p className='mt-1 text-sm text-[var(--color-neutral-500)]'>{helperText}</p>
+                <p className='mt-1 text-sm text-[var(--color-text-tertiary)]'>{helperText}</p>
             )}
         </div>
     )

@@ -30,11 +30,14 @@ export const Card: React.FC<CardProps> = ({
     return (
         <div
             className={`
-                bg-white rounded-lg border border-[var(--color-neutral-200)]
+                bg-[var(--color-bg-card)] rounded-lg border border-[var(--color-border)]
                 ${paddingClasses[padding]}
                 ${shadowClasses[shadow]}
                 ${className}
             `}
+            style={{
+                boxShadow: shadow !== 'none' ? '0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(59, 130, 246, 0.1)' : undefined,
+            }}
         >
             {children}
         </div>
@@ -48,7 +51,7 @@ interface CardHeaderProps {
 
 export const CardHeader: React.FC<CardHeaderProps> = ({ children, className = '' }) => {
     return (
-        <div className={`mb-4 ${className}`}>
+        <div className={`mb-4 border-b border-[var(--color-border)] pb-4 ${className}`}>
             {children}
         </div>
     )
@@ -61,7 +64,7 @@ interface CardTitleProps {
 
 export const CardTitle: React.FC<CardTitleProps> = ({ children, className = '' }) => {
     return (
-        <h3 className={`text-xl font-semibold text-[var(--color-neutral-900)] ${className}`}>
+        <h3 className={`text-xl font-semibold text-[var(--color-text-primary)] ${className}`}>
             {children}
         </h3>
     )
@@ -74,7 +77,7 @@ interface CardContentProps {
 
 export const CardContent: React.FC<CardContentProps> = ({ children, className = '' }) => {
     return (
-        <div className={className}>
+        <div className={`text-[var(--color-text-secondary)] ${className}`}>
             {children}
         </div>
     )

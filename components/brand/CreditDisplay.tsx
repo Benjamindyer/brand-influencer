@@ -51,20 +51,20 @@ export function CreditDisplay() {
     }
     
     if (loading) {
-        return <div className='text-sm text-[var(--color-neutral-600)]'>Loading...</div>
+        return <div className='text-sm text-[var(--color-text-secondary)]'>Loading...</div>
     }
     
     return (
         <div className='flex items-center gap-4'>
             <div>
-                <span className='text-sm text-[var(--color-neutral-600)] mr-2'>Campaign Credits:</span>
+                <span className='text-sm text-[var(--color-text-secondary)] mr-2'>Campaign Credits:</span>
                 <Badge variant={credits && credits > 0 ? 'success' : 'error'}>
                     {credits || 0}
                 </Badge>
             </div>
             {tier && (
                 <div>
-                    <span className='text-sm text-[var(--color-neutral-600)] mr-2'>Tier:</span>
+                    <span className='text-sm text-[var(--color-text-secondary)] mr-2'>Tier:</span>
                     <Badge variant='info'>{tier}</Badge>
                 </div>
             )}

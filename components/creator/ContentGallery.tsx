@@ -19,7 +19,7 @@ export function ContentGallery({
 }: ContentGalleryProps) {
     if (content.length === 0) {
         return (
-            <div className='text-center py-8 text-[var(--color-neutral-500)]'>
+            <div className='text-center py-8 text-[var(--color-text-tertiary)]'>
                 No featured content added yet
             </div>
         )
@@ -41,11 +41,11 @@ export function ContentGallery({
                         />
                     </div>
                     <div className='p-4'>
-                        <div className='text-sm text-[var(--color-neutral-600)] mb-2'>
+                        <div className='text-sm text-[var(--color-text-secondary)] mb-2'>
                             {item.platform}
                         </div>
                         {(item.likes || item.views) && (
-                            <div className='text-xs text-[var(--color-neutral-500)] space-y-1 mb-3'>
+                            <div className='text-xs text-[var(--color-text-tertiary)] space-y-1 mb-3'>
                                 {item.likes && <div>Likes: {item.likes.toLocaleString()}</div>}
                                 {item.views && <div>Views: {item.views.toLocaleString()}</div>}
                             </div>

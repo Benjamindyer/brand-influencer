@@ -60,7 +60,7 @@ export function NotificationDropdown({ onClose }: NotificationDropdownProps) {
     if (loading) {
         return (
             <div className='absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-[var(--color-neutral-200)] p-4'>
-                <p className='text-sm text-[var(--color-neutral-600)]'>Loading...</p>
+                <p className='text-sm text-[var(--color-text-secondary)]'>Loading...</p>
             </div>
         )
     }
@@ -72,7 +72,7 @@ export function NotificationDropdown({ onClose }: NotificationDropdownProps) {
             </div>
             <div className='divide-y divide-[var(--color-neutral-200)]'>
                 {notifications.length === 0 ? (
-                    <div className='p-4 text-center text-sm text-[var(--color-neutral-500)]'>
+                    <div className='p-4 text-center text-sm text-[var(--color-text-tertiary)]'>
                         No notifications
                     </div>
                 ) : (
@@ -90,10 +90,10 @@ export function NotificationDropdown({ onClose }: NotificationDropdownProps) {
                                     <Badge variant='info' size='sm'>New</Badge>
                                 )}
                             </div>
-                            <p className='text-xs text-[var(--color-neutral-600)] mb-1'>
+                            <p className='text-xs text-[var(--color-text-secondary)] mb-1'>
                                 {notification.message}
                             </p>
-                            <p className='text-xs text-[var(--color-neutral-500)]'>
+                            <p className='text-xs text-[var(--color-text-tertiary)]'>
                                 {new Date(notification.created_at).toLocaleDateString()}
                             </p>
                         </div>
