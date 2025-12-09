@@ -57,6 +57,46 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 See `.env.example` for required environment variables.
 
+### Required Environment Variables
+
+The following environment variables must be configured:
+
+#### Supabase (Required)
+- `NEXT_PUBLIC_SUPABASE_URL` - Your Supabase project URL (found in Project Settings > API)
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Your Supabase anonymous/public key (found in Project Settings > API)
+- `SUPABASE_SERVICE_ROLE_KEY` - Your Supabase service role key (found in Project Settings > API, keep this secret!)
+
+#### Optional
+- `RESEND_API_KEY` - Resend API key for sending emails
+- `NEXT_PUBLIC_APP_URL` - Your application URL (e.g., `http://localhost:3000` for local, or your Vercel URL for production)
+- `STRIPE_SECRET_KEY` - Stripe secret key for payments
+- `STRIPE_TIER1_PRICE_ID`, `STRIPE_TIER2_PRICE_ID`, `STRIPE_TIER3_PRICE_ID` - Stripe price IDs for subscription tiers
+
+### Setting Up Environment Variables in Vercel
+
+1. Go to your Vercel project dashboard
+2. Navigate to **Settings** > **Environment Variables**
+3. Add each environment variable:
+   - Click **Add New**
+   - Enter the variable name (e.g., `NEXT_PUBLIC_SUPABASE_URL`)
+   - Enter the value
+   - Select the environments where it applies (Production, Preview, Development)
+   - Click **Save**
+4. **Important**: After adding environment variables, you need to redeploy your application:
+   - Go to **Deployments**
+   - Click the three dots (⋯) on your latest deployment
+   - Select **Redeploy**
+
+### Getting Supabase Credentials
+
+1. Go to [Supabase Dashboard](https://app.supabase.com)
+2. Select your project (or create a new one)
+3. Go to **Project Settings** > **API**
+4. Copy:
+   - **Project URL** → `NEXT_PUBLIC_SUPABASE_URL`
+   - **anon/public key** → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - **service_role key** → `SUPABASE_SERVICE_ROLE_KEY` (⚠️ Keep this secret - never expose in client-side code)
+
 ## Project Structure
 
 ```
