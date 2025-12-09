@@ -1,8 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useParams } from 'next/navigation'
-import { supabase } from '@/lib/supabase/client'
+import { useParams, useRouter } from 'next/navigation'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
@@ -10,6 +9,7 @@ import { Avatar } from '@/components/ui/Avatar'
 
 export default function BriefApplicationsPage() {
     const params = useParams()
+    const router = useRouter()
     const briefId = params.id as string
     const [brief, setBrief] = useState<any>(null)
     const [applications, setApplications] = useState<any[]>([])
@@ -21,33 +21,31 @@ export default function BriefApplicationsPage() {
     
     async function loadData() {
         try {
-            const [briefData, applicationsData] = await Promise.all([
-                supabase
-                    .from('briefs')
-                    .select('*')
-                    .eq('id', briefId)
-                    .single(),
-                supabase
-                    .from('applications')
-                    .select(`
-                        *,
-                        creator:creator_profiles(
-                            id,
-                            name,
-                            display_name,
-                            profile_photo_url,
-                            primary_trade:trades!creator_profiles_primary_trade_id_fkey(name)
-                        )
-                    `)
-                    .eq('brief_id', briefId)
-                    .order('created_at', { ascending: false }),
-            ])
+            // Check auth first
+            const authResponse = await fetch('/api/auth/status', {
+                headers: { 'Accept': 'application/json' },
+            })
             
-            if (briefData.error) throw briefData.error
-            if (applicationsData.error) throw applicationsData.error
+            if (!authResponse.ok) {
+                router.push('/auth/login')
+                return
+            }
             
-            setBrief(briefData.data)
-            setApplications(applicationsData.data || [])
+            const authData = await authResponse.json()
+            if (!authData.authenticated) {
+                router.push('/auth/login')
+                return
+            }
+            
+            const response = await fetch(`/api/brand/briefs/${briefId}/applications`, {
+                headers: { 'Accept': 'application/json' },
+            })
+            
+            if (response.ok) {
+                const data = await response.json()
+                setBrief(data.brief)
+                setApplications(data.applications || [])
+            }
         } catch (error) {
             console.error('Failed to load data:', error)
         } finally {
@@ -55,25 +53,29 @@ export default function BriefApplicationsPage() {
         }
     }
     
-    async function handleStatusChange(applicationId: string, status: 'accepted' | 'rejected') {
+    async function handleApplicationAction(applicationId: string, action: 'accepted' | 'rejected') {
         try {
             const response = await fetch(`/api/brand/applications/${applicationId}`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json',
                 },
-                body: JSON.stringify({ status }),
+                body: JSON.stringify({ status: action }),
             })
             
             if (!response.ok) {
-                const error = await response.json()
-                throw new Error(error.error || 'Failed to update status')
+                throw new Error('Failed to update application')
             }
             
-            await loadData()
+            // Update local state
+            setApplications((prev) =>
+                prev.map((app) =>
+                    app.id === applicationId ? { ...app, status: action } : app
+                )
+            )
         } catch (error) {
-            alert('Failed to update application status')
-            console.error(error)
+            console.error('Failed to update application:', error)
         }
     }
     
@@ -85,75 +87,107 @@ export default function BriefApplicationsPage() {
         )
     }
     
-    const pendingApplications = applications.filter((a) => a.status === 'pending')
-    const acceptedApplications = applications.filter((a) => a.status === 'accepted')
-    const rejectedApplications = applications.filter((a) => a.status === 'rejected')
+    if (!brief) {
+        return (
+            <div className='min-h-screen flex items-center justify-center'>
+                <p>Brief not found</p>
+            </div>
+        )
+    }
+    
+    const getStatusBadge = (status: string) => {
+        switch (status) {
+            case 'pending':
+                return <Badge variant='warning'>Pending</Badge>
+            case 'accepted':
+                return <Badge variant='success'>Accepted</Badge>
+            case 'rejected':
+                return <Badge variant='error'>Rejected</Badge>
+            default:
+                return <Badge>{status}</Badge>
+        }
+    }
     
     return (
         <div className='min-h-screen bg-transparent p-4'>
             <div className='max-w-4xl mx-auto mt-8 space-y-6'>
                 <Card>
                     <CardHeader>
-                        <CardTitle>{brief?.title}</CardTitle>
-                        {brief && (
-                            <div className='text-sm text-[var(--color-text-secondary)] mt-2'>
-                                {brief.type === 'multi_creator' ? (
-                                    <div>
-                                        Slots: {brief.slots_filled} / {brief.num_creators_required}
-                                    </div>
-                                ) : (
-                                    <div>Status: {brief.status}</div>
-                                )}
-                            </div>
-                        )}
+                        <div className='flex items-center justify-between'>
+                            <CardTitle>{brief.title}</CardTitle>
+                            <Badge variant={brief.status === 'open' ? 'success' : 'info'}>
+                                {brief.status}
+                            </Badge>
+                        </div>
                     </CardHeader>
+                    <CardContent>
+                        <p className='text-[var(--color-text-secondary)]'>{brief.description}</p>
+                    </CardContent>
                 </Card>
                 
                 <Card>
                     <CardHeader>
-                        <CardTitle>
-                            Applications ({applications.length})
-                        </CardTitle>
+                        <CardTitle>Applications ({applications.length})</CardTitle>
                     </CardHeader>
                     <CardContent>
                         {applications.length === 0 ? (
-                            <div className='text-center py-8 text-[var(--color-text-tertiary)]'>
+                            <p className='text-[var(--color-text-tertiary)] text-center py-8'>
                                 No applications yet
-                            </div>
+                            </p>
                         ) : (
                             <div className='space-y-4'>
-                                {pendingApplications.length > 0 && (
-                                    <div>
-                                        <h3 className='font-semibold mb-3'>Pending ({pendingApplications.length})</h3>
-                                        {pendingApplications.map((app) => (
-                                            <ApplicationCard
-                                                key={app.id}
-                                                application={app}
-                                                onAccept={() => handleStatusChange(app.id, 'accepted')}
-                                                onReject={() => handleStatusChange(app.id, 'rejected')}
-                                                canAccept={brief?.status === 'open' && (brief?.type === 'standard' || (brief?.slots_filled || 0) < brief?.num_creators_required)}
-                                            />
-                                        ))}
+                                {applications.map((app) => (
+                                    <div
+                                        key={app.id}
+                                        className='p-4 border border-[var(--color-neutral-200)] rounded-lg'
+                                    >
+                                        <div className='flex items-start justify-between'>
+                                            <div className='flex items-center gap-4'>
+                                                <Avatar
+                                                    src={app.creator?.profile_photo_url}
+                                                    alt={app.creator?.display_name || app.creator?.name}
+                                                    size='md'
+                                                />
+                                                <div>
+                                                    <div className='font-medium'>
+                                                        {app.creator?.display_name || app.creator?.name}
+                                                    </div>
+                                                    {app.creator?.primary_trade?.name && (
+                                                        <div className='text-sm text-[var(--color-text-secondary)]'>
+                                                            {app.creator.primary_trade.name}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            {getStatusBadge(app.status)}
+                                        </div>
+                                        
+                                        {app.message && (
+                                            <p className='mt-3 text-sm text-[var(--color-text-secondary)]'>
+                                                {app.message}
+                                            </p>
+                                        )}
+                                        
+                                        {app.status === 'pending' && (
+                                            <div className='mt-4 flex gap-2'>
+                                                <Button
+                                                    variant='primary'
+                                                    size='sm'
+                                                    onClick={() => handleApplicationAction(app.id, 'accepted')}
+                                                >
+                                                    Accept
+                                                </Button>
+                                                <Button
+                                                    variant='outline'
+                                                    size='sm'
+                                                    onClick={() => handleApplicationAction(app.id, 'rejected')}
+                                                >
+                                                    Reject
+                                                </Button>
+                                            </div>
+                                        )}
                                     </div>
-                                )}
-                                
-                                {acceptedApplications.length > 0 && (
-                                    <div>
-                                        <h3 className='font-semibold mb-3'>Accepted ({acceptedApplications.length})</h3>
-                                        {acceptedApplications.map((app) => (
-                                            <ApplicationCard key={app.id} application={app} />
-                                        ))}
-                                    </div>
-                                )}
-                                
-                                {rejectedApplications.length > 0 && (
-                                    <div>
-                                        <h3 className='font-semibold mb-3'>Rejected ({rejectedApplications.length})</h3>
-                                        {rejectedApplications.map((app) => (
-                                            <ApplicationCard key={app.id} application={app} />
-                                        ))}
-                                    </div>
-                                )}
+                                ))}
                             </div>
                         )}
                     </CardContent>
@@ -162,74 +196,3 @@ export default function BriefApplicationsPage() {
         </div>
     )
 }
-
-function ApplicationCard({
-    application,
-    onAccept,
-    onReject,
-    canAccept = false,
-}: {
-    application: any
-    onAccept?: () => void
-    onReject?: () => void
-    canAccept?: boolean
-}) {
-    return (
-        <div className='p-4 border border-[var(--color-neutral-200)] rounded-lg'>
-            <div className='flex items-start gap-4 mb-4'>
-                <Avatar
-                    src={application.creator?.profile_photo_url}
-                    alt={application.creator?.display_name || application.creator?.name}
-                />
-                <div className='flex-1'>
-                    <div className='flex items-center gap-2 mb-1'>
-                        <h4 className='font-semibold'>
-                            {application.creator?.display_name || application.creator?.name}
-                        </h4>
-                        <Badge variant={
-                            application.status === 'accepted' ? 'success' :
-                            application.status === 'rejected' ? 'error' : 'default'
-                        }>
-                            {application.status}
-                        </Badge>
-                    </div>
-                    {application.creator?.primary_trade && (
-                        <p className='text-sm text-[var(--color-text-secondary)] mb-2'>
-                            {application.creator.primary_trade.name}
-                        </p>
-                    )}
-                    {application.message && (
-                        <p className='text-[var(--color-text-secondary)] mb-2'>{application.message}</p>
-                    )}
-                    {application.links && application.links.length > 0 && (
-                        <div className='text-sm mb-2'>
-                            <span className='font-medium'>Links: </span>
-                            {application.links.map((link: string, i: number) => (
-                                <a
-                                    key={i}
-                                    href={link}
-                                    target='_blank'
-                                    rel='noopener noreferrer'
-                                    className='text-[var(--color-primary-600)] hover:underline mr-2'
-                                >
-                                    {link}
-                                </a>
-                            ))}
-                        </div>
-                    )}
-                </div>
-            </div>
-            {onAccept && onReject && canAccept && application.status === 'pending' && (
-                <div className='flex gap-2'>
-                    <Button variant='primary' size='sm' onClick={onAccept}>
-                        Accept
-                    </Button>
-                    <Button variant='outline' size='sm' onClick={onReject}>
-                        Reject
-                    </Button>
-                </div>
-            )}
-        </div>
-    )
-}
-

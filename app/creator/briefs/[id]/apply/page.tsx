@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase/client'
 import { ApplicationForm } from '@/components/creator/ApplicationForm'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
 
@@ -20,14 +19,14 @@ export default function ApplyToBriefPage() {
     
     async function loadBrief() {
         try {
-            const { data, error } = await supabase
-                .from('briefs')
-                .select('*, brand:brand_profiles(company_name)')
-                .eq('id', briefId)
-                .single()
+            const response = await fetch(`/api/creator/briefs/${briefId}`, {
+                headers: { 'Accept': 'application/json' },
+            })
             
-            if (error) throw error
-            setBrief(data)
+            if (response.ok) {
+                const data = await response.json()
+                setBrief(data)
+            }
         } catch (error) {
             console.error('Failed to load brief:', error)
         } finally {
@@ -42,6 +41,7 @@ export default function ApplyToBriefPage() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json',
                 },
                 body: JSON.stringify(applicationData),
             })
@@ -77,28 +77,23 @@ export default function ApplyToBriefPage() {
     
     return (
         <div className='min-h-screen bg-transparent p-4'>
-            <div className='max-w-2xl mx-auto mt-8 space-y-6'>
+            <div className='max-w-2xl mx-auto mt-8'>
                 <Card>
                     <CardHeader>
                         <CardTitle>Apply to: {brief.title}</CardTitle>
-                        {brief.brand && (
-                            <p className='text-[var(--color-text-secondary)]'>
-                                {brief.brand.company_name}
-                            </p>
-                        )}
-                    </CardHeader>
-                </Card>
-                
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Your Application</CardTitle>
+                        <p className='text-sm text-[var(--color-text-secondary)]'>
+                            by {brief.brand?.company_name}
+                        </p>
                     </CardHeader>
                     <CardContent>
-                        <ApplicationForm briefId={briefId} onSubmit={handleSubmit} loading={saving} />
+                        <ApplicationForm
+                            briefId={briefId}
+                            onSubmit={handleSubmit}
+                            loading={saving}
+                        />
                     </CardContent>
                 </Card>
             </div>
         </div>
     )
 }
-

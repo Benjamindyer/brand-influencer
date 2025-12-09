@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase/client'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
@@ -21,18 +20,14 @@ export default function BriefDetailPage() {
     
     async function loadBrief() {
         try {
-            const { data, error } = await supabase
-                .from('briefs')
-                .select(`
-                    *,
-                    brand:brand_profiles(*),
-                    targeting:brief_targeting(*)
-                `)
-                .eq('id', briefId)
-                .single()
+            const response = await fetch(`/api/creator/briefs/${briefId}`, {
+                headers: { 'Accept': 'application/json' },
+            })
             
-            if (error) throw error
-            setBrief(data)
+            if (response.ok) {
+                const data = await response.json()
+                setBrief(data)
+            }
         } catch (error) {
             console.error('Failed to load brief:', error)
         } finally {
@@ -62,73 +57,71 @@ export default function BriefDetailPage() {
                 <Card>
                     <CardHeader>
                         <div className='flex items-center justify-between'>
-                            <div>
-                                <CardTitle className='text-2xl mb-2'>{brief.title}</CardTitle>
-                                {brief.brand && (
-                                    <p className='text-[var(--color-text-secondary)]'>
-                                        {brief.brand.company_name}
-                                    </p>
-                                )}
-                            </div>
-                            <Badge variant={brief.type === 'multi_creator' ? 'info' : 'default'}>
-                                {brief.type === 'multi_creator' ? 'Multi-Creator' : 'Standard'}
+                            <CardTitle>{brief.title}</CardTitle>
+                            <Badge variant={brief.status === 'open' ? 'success' : 'info'}>
+                                {brief.status}
                             </Badge>
                         </div>
                     </CardHeader>
-                    <CardContent className='space-y-4'>
+                    <CardContent className='space-y-6'>
                         <div>
-                            <h4 className='font-semibold mb-2'>Description</h4>
-                            <p className='text-[var(--color-text-secondary)] whitespace-pre-wrap'>
-                                {brief.description}
+                            <h3 className='font-medium mb-2'>Brand</h3>
+                            <p className='text-[var(--color-text-secondary)]'>
+                                {brief.brand?.company_name}
                             </p>
+                        </div>
+                        
+                        <div>
+                            <h3 className='font-medium mb-2'>Description</h3>
+                            <p className='text-[var(--color-text-secondary)]'>{brief.description}</p>
                         </div>
                         
                         {brief.deliverables && (
                             <div>
-                                <h4 className='font-semibold mb-2'>Deliverables</h4>
-                                <p className='text-[var(--color-text-secondary)] whitespace-pre-wrap'>
-                                    {brief.deliverables}
-                                </p>
+                                <h3 className='font-medium mb-2'>Deliverables</h3>
+                                <p className='text-[var(--color-text-secondary)]'>{brief.deliverables}</p>
                             </div>
                         )}
                         
-                        <div className='grid grid-cols-2 gap-4 text-sm'>
+                        <div className='grid grid-cols-2 gap-4'>
                             {brief.compensation_type && (
                                 <div>
-                                    <span className='font-medium'>Compensation: </span>
-                                    {brief.compensation_type}
-                                    {brief.fee_amount && ` - $${brief.fee_amount}`}
+                                    <h3 className='font-medium mb-2'>Compensation</h3>
+                                    <p className='text-[var(--color-text-secondary)]'>
+                                        {brief.compensation_type}
+                                        {brief.fee_amount && ` - $${brief.fee_amount}`}
+                                    </p>
                                 </div>
                             )}
+                            
                             {brief.timeline && (
                                 <div>
-                                    <span className='font-medium'>Timeline: </span>
-                                    {brief.timeline}
-                                </div>
-                            )}
-                            {brief.deadline && (
-                                <div>
-                                    <span className='font-medium'>Deadline: </span>
-                                    {new Date(brief.deadline).toLocaleDateString()}
-                                </div>
-                            )}
-                            {brief.type === 'multi_creator' && (
-                                <div>
-                                    <span className='font-medium'>Creators Required: </span>
-                                    {brief.num_creators_required}
+                                    <h3 className='font-medium mb-2'>Timeline</h3>
+                                    <p className='text-[var(--color-text-secondary)]'>{brief.timeline}</p>
                                 </div>
                             )}
                         </div>
                         
-                        <Link href={`/creator/briefs/${briefId}/apply`}>
-                            <Button variant='primary' className='w-full'>
-                                Apply to This Brief
-                            </Button>
-                        </Link>
+                        {brief.deadline && (
+                            <div>
+                                <h3 className='font-medium mb-2'>Application Deadline</h3>
+                                <p className='text-[var(--color-text-secondary)]'>
+                                    {new Date(brief.deadline).toLocaleDateString()}
+                                </p>
+                            </div>
+                        )}
+                        
+                        <div className='flex gap-2 pt-4'>
+                            <Link href={`/creator/briefs/${brief.id}/apply`}>
+                                <Button variant='primary'>Apply Now</Button>
+                            </Link>
+                            <Link href='/creator/briefs'>
+                                <Button variant='outline'>Back to Briefs</Button>
+                            </Link>
+                        </div>
                     </CardContent>
                 </Card>
             </div>
         </div>
     )
 }
-

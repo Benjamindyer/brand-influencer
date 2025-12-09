@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Input'
 import { Select, MultiSelect } from '@/components/ui/Select'
 import { Button } from '@/components/ui/Button'
-import { supabase } from '@/lib/supabase/client'
 
 interface BriefFormProps {
     initialData?: any
@@ -33,8 +32,17 @@ export function BriefForm({ initialData, onSubmit, loading = false, isMultiCreat
     
     useEffect(() => {
         async function loadTrades() {
-            const { data } = await supabase.from('trades').select('*').order('name')
-            setTrades(data || [])
+            try {
+                const response = await fetch('/api/trades', {
+                    headers: { 'Accept': 'application/json' },
+                })
+                if (response.ok) {
+                    const data = await response.json()
+                    setTrades(Array.isArray(data) ? data : [])
+                }
+            } catch (error) {
+                console.error('Failed to load trades:', error)
+            }
         }
         loadTrades()
     }, [])

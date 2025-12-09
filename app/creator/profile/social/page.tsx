@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase/client'
 import { SocialAccountForm } from '@/components/creator/SocialAccountForm'
 import { SocialAccountList } from '@/components/creator/SocialAccountList'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'

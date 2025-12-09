@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase/client'
 import { CreatorSearchFilters } from '@/components/brand/CreatorSearchFilters'
 import { CreatorSearchResults } from '@/components/brand/CreatorSearchResults'
 import { Card, CardHeader, CardTitle } from '@/components/ui/Card'
@@ -20,13 +19,14 @@ export default function CreatorSearchPage() {
     useEffect(() => {
         async function loadTrades() {
             try {
-                const { data, error } = await supabase
-                    .from('trades')
-                    .select('*')
-                    .order('name')
+                const response = await fetch('/api/trades', {
+                    headers: { 'Accept': 'application/json' },
+                })
                 
-                if (error) throw error
-                setTrades(data || [])
+                if (response.ok) {
+                    const data = await response.json()
+                    setTrades(Array.isArray(data) ? data : [])
+                }
             } catch (error) {
                 console.error('Failed to load trades:', error)
             } finally {
@@ -51,7 +51,9 @@ export default function CreatorSearchPage() {
                 }
             })
             
-            const response = await fetch(`/api/brand/creators/search?${params.toString()}`)
+            const response = await fetch(`/api/brand/creators/search?${params.toString()}`, {
+                headers: { 'Accept': 'application/json' },
+            })
             if (!response.ok) throw new Error('Search failed')
             
             const data = await response.json()
@@ -92,4 +94,3 @@ export default function CreatorSearchPage() {
         </div>
     )
 }
-

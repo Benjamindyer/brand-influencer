@@ -2,10 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { getBrandProfile } from '@/lib/supabase/queries/brand'
 import { BrandProfileForm } from '@/components/brand/ProfileForm'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
-import { supabase } from '@/lib/supabase/client'
 import type { BrandProfile } from '@/types/brand'
 
 export default function EditBrandProfilePage() {
@@ -17,17 +15,34 @@ export default function EditBrandProfilePage() {
     useEffect(() => {
         async function loadProfile() {
             try {
-                const {
-                    data: { user },
-                } = await supabase.auth.getUser()
+                // Check auth first
+                const authResponse = await fetch('/api/auth/status', {
+                    headers: { 'Accept': 'application/json' },
+                })
                 
-                if (!user) {
-                    router.push('/login')
+                if (!authResponse.ok) {
+                    router.push('/auth/login')
                     return
                 }
                 
-                const profileData = await getBrandProfile(user.id)
-                setProfile(profileData)
+                const authData = await authResponse.json()
+                if (!authData.authenticated) {
+                    router.push('/auth/login')
+                    return
+                }
+                
+                // Get profile via API route
+                const profileResponse = await fetch('/api/brand/profile', {
+                    headers: { 'Accept': 'application/json' },
+                })
+                
+                if (profileResponse.ok) {
+                    const profileData = await profileResponse.json()
+                    setProfile(profileData)
+                } else if (profileResponse.status === 404) {
+                    router.push('/brand/profile/create')
+                    return
+                }
             } catch (error) {
                 console.error('Failed to load profile:', error)
             } finally {
@@ -45,6 +60,7 @@ export default function EditBrandProfilePage() {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json',
                 },
                 body: JSON.stringify(profileData),
             })
@@ -71,7 +87,6 @@ export default function EditBrandProfilePage() {
     }
     
     if (!profile) {
-        router.push('/brand/profile/create')
         return null
     }
     
@@ -90,4 +105,3 @@ export default function EditBrandProfilePage() {
         </div>
     )
 }
-

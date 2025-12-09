@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
-import { supabase } from '@/lib/supabase/client'
 import { Avatar } from '@/components/ui/Avatar'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
@@ -23,22 +22,14 @@ export default function CreatorProfileViewPage() {
     
     async function loadCreator() {
         try {
-            const { data, error } = await supabase
-                .from('creator_profiles')
-                .select(`
-                    *,
-                    primary_trade:trades!creator_profiles_primary_trade_id_fkey(*),
-                    additional_trades:creator_trades(
-                        trade:trades(*)
-                    ),
-                    social_accounts(*),
-                    featured_content(*)
-                `)
-                .eq('id', creatorId)
-                .single()
+            const response = await fetch(`/api/brand/creators/${creatorId}`, {
+                headers: { 'Accept': 'application/json' },
+            })
             
-            if (error) throw error
-            setCreator(data)
+            if (response.ok) {
+                const data = await response.json()
+                setCreator(data)
+            }
         } catch (error) {
             console.error('Failed to load creator:', error)
         } finally {
@@ -48,28 +39,15 @@ export default function CreatorProfileViewPage() {
     
     async function checkFavourite() {
         try {
-            const {
-                data: { user },
-            } = await supabase.auth.getUser()
+            const response = await fetch('/api/brand/favourites', {
+                headers: { 'Accept': 'application/json' },
+            })
             
-            if (!user) return
-            
-            const { data: brandProfile } = await supabase
-                .from('brand_profiles')
-                .select('id')
-                .eq('user_id', user.id)
-                .single()
-            
-            if (!brandProfile) return
-            
-            const { data } = await supabase
-                .from('favourites')
-                .select('*')
-                .eq('brand_id', brandProfile.id)
-                .eq('creator_id', creatorId)
-                .single()
-            
-            setIsFavourite(!!data)
+            if (response.ok) {
+                const data = await response.json()
+                const creators = data.creators || []
+                setIsFavourite(creators.some((c: any) => c.id === creatorId))
+            }
         } catch (error) {
             // Not a favourite
         }
@@ -77,33 +55,24 @@ export default function CreatorProfileViewPage() {
     
     async function toggleFavourite() {
         try {
-            const {
-                data: { user },
-            } = await supabase.auth.getUser()
-            
-            if (!user) return
-            
-            const { data: brandProfile } = await supabase
-                .from('brand_profiles')
-                .select('id')
-                .eq('user_id', user.id)
-                .single()
-            
-            if (!brandProfile) return
-            
             if (isFavourite) {
-                await supabase
-                    .from('favourites')
-                    .delete()
-                    .eq('brand_id', brandProfile.id)
-                    .eq('creator_id', creatorId)
+                await fetch('/api/brand/favourites', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({ creatorId }),
+                })
             } else {
-                await supabase
-                    .from('favourites')
-                    .insert({
-                        brand_id: brandProfile.id,
-                        creator_id: creatorId,
-                    })
+                await fetch('/api/brand/favourites', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({ creatorId }),
+                })
             }
             
             setIsFavourite(!isFavourite)
@@ -252,4 +221,3 @@ export default function CreatorProfileViewPage() {
         </div>
     )
 }
-

@@ -1,11 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase/client'
+import { useRouter } from 'next/navigation'
 import { CreatorCard } from '@/components/brand/CreatorCard'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
 
 export default function FavouritesPage() {
+    const router = useRouter()
     const [creators, setCreators] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
     
@@ -15,33 +16,29 @@ export default function FavouritesPage() {
     
     async function loadFavourites() {
         try {
-            const {
-                data: { user },
-            } = await supabase.auth.getUser()
+            // Check auth first
+            const authResponse = await fetch('/api/auth/status', {
+                headers: { 'Accept': 'application/json' },
+            })
             
-            if (!user) return
+            if (!authResponse.ok) {
+                router.push('/auth/login')
+                return
+            }
             
-            const { data: brandProfile } = await supabase
-                .from('brand_profiles')
-                .select('id')
-                .eq('user_id', user.id)
-                .single()
+            const authData = await authResponse.json()
+            if (!authData.authenticated) {
+                router.push('/auth/login')
+                return
+            }
             
-            if (!brandProfile) return
+            const response = await fetch('/api/brand/favourites', {
+                headers: { 'Accept': 'application/json' },
+            })
             
-            const { data: favourites } = await supabase
-                .from('favourites')
-                .select(`
-                    creator:creator_profiles(
-                        *,
-                        primary_trade:trades!creator_profiles_primary_trade_id_fkey(*),
-                        social_accounts(*)
-                    )
-                `)
-                .eq('brand_id', brandProfile.id)
-            
-            if (favourites) {
-                setCreators(favourites.map((f: any) => f.creator).filter(Boolean))
+            if (response.ok) {
+                const data = await response.json()
+                setCreators(data.creators || [])
             }
         } catch (error) {
             console.error('Failed to load favourites:', error)
@@ -84,4 +81,3 @@ export default function FavouritesPage() {
         </div>
     )
 }
-
