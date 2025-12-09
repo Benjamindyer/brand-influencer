@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import { Sidebar } from '@/components/layout/Sidebar'
 
 export default async function CreatorLayout({
     children,
@@ -39,6 +40,13 @@ export default async function CreatorLayout({
         redirect('/unauthorized')
     }
     
-    return <>{children}</>
+    return (
+        <div className='flex min-h-screen'>
+            <Sidebar role={profile.role} user={user} />
+            <main className='flex-1 ml-64'>
+                {children}
+            </main>
+        </div>
+    )
 }
 

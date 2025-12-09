@@ -30,14 +30,11 @@ export const Card: React.FC<CardProps> = ({
     return (
         <div
             className={`
-                bg-[var(--color-bg-card)] rounded-lg border border-[var(--color-border)]
+                bg-[var(--color-bg-card)] rounded-xl border border-[var(--color-border)]
                 ${paddingClasses[padding]}
                 ${shadowClasses[shadow]}
                 ${className}
             `}
-            style={{
-                boxShadow: shadow !== 'none' ? '0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(59, 130, 246, 0.1)' : undefined,
-            }}
         >
             {children}
         </div>

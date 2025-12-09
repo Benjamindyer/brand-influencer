@@ -7,6 +7,8 @@ import { getCreatorProfile } from '@/lib/supabase/queries/creator'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
+import { MetricCard } from '@/components/ui/MetricCard'
+import { TaskCard } from '@/components/ui/TaskCard'
 import Link from 'next/link'
 
 export default function CreatorDashboard() {
@@ -86,19 +88,19 @@ export default function CreatorDashboard() {
     const profileComplete = profile.name && profile.primary_trade_id
     
     return (
-        <div className='min-h-screen bg-transparent p-4'>
-            <div className='max-w-6xl mx-auto mt-8 space-y-6'>
+        <div className='min-h-screen bg-[var(--color-bg-primary)] p-8'>
+            <div className='max-w-7xl mx-auto space-y-6'>
                 <div>
-                    <h1 className='text-3xl font-bold mb-2'>Creator Dashboard</h1>
-                    <p className='text-[var(--color-text-secondary)]'>Welcome back, {profile.display_name || profile.name}!</p>
+                    <h1 className='text-3xl font-bold mb-2 text-[var(--color-text-primary)]'>Home</h1>
+                    <p className='text-[var(--color-text-tertiary)]'>Monitor all of your projects and tasks here.</p>
                 </div>
                 
                 {!profileComplete && (
-                    <Card>
-                        <CardContent className='p-4 bg-yellow-50 border-yellow-200'>
-                            <p className='text-sm text-yellow-800'>
+                    <Card className='bg-yellow-500/10 border-yellow-500/20'>
+                        <CardContent className='p-4'>
+                            <p className='text-sm text-yellow-400'>
                                 Complete your profile to start applying to briefs.{' '}
-                                <Link href='/creator/profile/edit' className='underline'>
+                                <Link href='/creator/profile/edit' className='underline hover:text-yellow-300'>
                                     Edit Profile
                                 </Link>
                             </p>
@@ -107,26 +109,21 @@ export default function CreatorDashboard() {
                 )}
                 
                 <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
-                    <Card>
-                        <CardContent className='p-6'>
-                            <div className='text-2xl font-bold'>{stats.applications}</div>
-                            <div className='text-sm text-[var(--color-text-secondary)]'>Total Applications</div>
-                        </CardContent>
-                    </Card>
-                    
-                    <Card>
-                        <CardContent className='p-6'>
-                            <div className='text-2xl font-bold text-[var(--color-success-600)]'>{stats.accepted}</div>
-                            <div className='text-sm text-[var(--color-text-secondary)]'>Accepted</div>
-                        </CardContent>
-                    </Card>
-                    
-                    <Card>
-                        <CardContent className='p-6'>
-                            <div className='text-2xl font-bold text-[var(--color-primary-600)]'>{stats.pending}</div>
-                            <div className='text-sm text-[var(--color-text-secondary)]'>Pending</div>
-                        </CardContent>
-                    </Card>
+                    <MetricCard
+                        title='Total Applications'
+                        value={stats.applications}
+                        trend={{ value: 2, isPositive: true }}
+                    />
+                    <MetricCard
+                        title='Accepted'
+                        value={stats.accepted}
+                        trend={{ value: 1, isPositive: true }}
+                    />
+                    <MetricCard
+                        title='Pending'
+                        value={stats.pending}
+                        trend={{ value: 1, isPositive: false }}
+                    />
                 </div>
                 
                 <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
