@@ -19,7 +19,16 @@ export function Navigation() {
     
     useEffect(() => {
         // Only run in browser
-        if (typeof window === 'undefined') return
+        if (typeof window === 'undefined') {
+            setLoading(false)
+            return
+        }
+        
+        // Check if supabase client is available
+        if (!supabase || typeof supabase.auth === 'undefined') {
+            setLoading(false)
+            return
+        }
         
         loadUser()
         
@@ -36,20 +45,41 @@ export function Navigation() {
         } catch (error) {
             // Silently handle if client isn't available
             console.warn('Failed to set up auth state listener:', error)
+            setLoading(false)
         }
     }, [])
     
     async function loadUser() {
         try {
             // Only run in browser
-            if (typeof window === 'undefined') return
+            if (typeof window === 'undefined') {
+                setLoading(false)
+                return
+            }
+            
+            // Check if supabase client is available
+            if (!supabase || typeof supabase.auth === 'undefined') {
+                setLoading(false)
+                return
+            }
             
             const {
                 data: { user: authUser },
                 error: authError,
             } = await supabase.auth.getUser()
             
-            if (authError || !authUser) {
+            if (authError) {
+                // Log the actual error for debugging
+                if (authError.message && !authError.message.includes('CORS')) {
+                    console.warn('Auth error:', authError.message)
+                }
+                setUser(null)
+                setRole(null)
+                setLoading(false)
+                return
+            }
+            
+            if (!authUser) {
                 setUser(null)
                 setRole(null)
                 setLoading(false)
@@ -65,13 +95,15 @@ export function Navigation() {
                 .single()
             
             if (profileError) {
-                console.warn('Failed to load user profile:', profileError)
+                console.warn('Failed to load user profile:', profileError.message)
             }
             
             setRole(profile?.role || null)
-        } catch (error) {
-            // Silently handle CORS/auth errors
-            console.warn('Failed to load user:', error)
+        } catch (error: any) {
+            // Only log non-CORS errors
+            if (error?.message && !error.message.includes('Load failed') && !error.message.includes('CORS')) {
+                console.warn('Failed to load user:', error.message)
+            }
             setUser(null)
             setRole(null)
         } finally {
