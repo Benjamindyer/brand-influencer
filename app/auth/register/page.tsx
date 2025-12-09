@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
-import { createUserProfile } from '@/lib/auth/helpers'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
@@ -24,26 +23,58 @@ export default function RegisterPage() {
         setError(null)
         
         try {
-            // Sign up with Supabase Auth
-            const { data: authData, error: authError } = await supabase.auth.signUp({
+            // Register via API route (handles profile creation server-side)
+            const response = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email,
+                    password,
+                    role,
+                }),
+            })
+
+            const data = await response.json()
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Registration failed')
+            }
+
+            // Sign in the user after successful registration
+            const { error: signInError } = await supabase.auth.signInWithPassword({
                 email,
                 password,
-                options: {
-                    emailRedirectTo: `${window.location.origin}/verify-email`,
-                },
             })
-            
-            if (authError) throw authError
-            
-            if (!authData.user) {
-                throw new Error('Failed to create user')
+
+            if (signInError) {
+                // Registration succeeded but sign-in failed - redirect to login
+                router.push('/auth/login?registered=true')
+                return
             }
-            
-            // Create user profile with role
-            await createUserProfile(authData.user.id, role)
-            
-            // Redirect to verification page
-            router.push('/verify-email')
+
+            // Get user role to redirect appropriately
+            const { data: { user } } = await supabase.auth.getUser()
+            if (user) {
+                const { data: profile } = await supabase
+                    .from('user_profiles')
+                    .select('role')
+                    .eq('id', user.id)
+                    .single()
+
+                if (profile) {
+                    if (profile.role === 'creator') {
+                        router.push('/creator/dashboard')
+                    } else if (profile.role === 'brand') {
+                        router.push('/brand/dashboard')
+                    } else {
+                        router.push('/')
+                    }
+                } else {
+                    router.push('/')
+                }
+            }
         } catch (err) {
             setError(err instanceof Error ? err.message : 'An error occurred')
         } finally {
@@ -106,7 +137,7 @@ export default function RegisterPage() {
                         
                         <p className='text-sm text-center text-[var(--color-neutral-600)]'>
                             Already have an account?{' '}
-                            <a href='/login' className='text-[var(--color-primary-600)] hover:underline'>
+                            <a href='/auth/login' className='text-[var(--color-primary-600)] hover:underline'>
                                 Sign in
                             </a>
                         </p>
