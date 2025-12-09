@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
-import { getCreatorProfile } from '@/lib/supabase/queries/creator'
 import { ProfileForm } from '@/components/creator/ProfileForm'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
 import type { CreatorProfileWithTrades } from '@/types/creator'
@@ -33,12 +32,24 @@ export default function EditProfilePage() {
                     return
                 }
                 
-                const [profileData, tradesData] = await Promise.all([
-                    getCreatorProfile(user.id),
+                // Use API route instead of direct Supabase query to avoid CORS/406 errors
+                const [profileResponse, tradesData] = await Promise.all([
+                    fetch('/api/creator/profile', {
+                        headers: {
+                            'Accept': 'application/json',
+                        },
+                    }),
                     supabase.from('trades').select('*').order('name'),
                 ])
                 
                 if (tradesData.error) throw tradesData.error
+                
+                let profileData = null
+                if (profileResponse.ok) {
+                    profileData = await profileResponse.json()
+                } else if (profileResponse.status !== 404) {
+                    throw new Error(`Failed to load profile: ${profileResponse.status}`)
+                }
                 
                 setProfile(profileData)
                 setTrades(tradesData.data || [])
