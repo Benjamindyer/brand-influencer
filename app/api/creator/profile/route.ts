@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createApiClient } from '@/lib/supabase/api-client'
-import { getCreatorProfile, createCreatorProfile, updateCreatorProfile } from '@/lib/supabase/queries/creator'
+import { createCreatorProfile, updateCreatorProfile } from '@/lib/supabase/queries/creator'
 
 export async function GET(request: NextRequest) {
     try {
@@ -14,17 +14,50 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
         
-        const profile = await getCreatorProfile(user.id)
+        // Use server-side client directly instead of getCreatorProfile
+        const { data, error } = await supabase
+            .from('creator_profiles')
+            .select(`
+                *,
+                primary_trade:trades!creator_profiles_primary_trade_id_fkey(*),
+                additional_trades:creator_trades(
+                    trade:trades(*)
+                )
+            `)
+            .eq('user_id', user.id)
+            .single()
         
-        if (!profile) {
+        if (error) {
+            if (error.code === 'PGRST116') {
+                return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
+            }
+            throw error
+        }
+        
+        if (!data) {
             return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
         }
         
-        return NextResponse.json(profile)
+        const profile = {
+            ...data,
+            primary_trade: data.primary_trade,
+            additional_trades: data.additional_trades?.map((ct: any) => ct.trade) || [],
+        }
+        
+        return NextResponse.json(profile, {
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        })
     } catch (error) {
         return NextResponse.json(
             { error: error instanceof Error ? error.message : 'Internal server error' },
-            { status: 500 }
+            { 
+                status: 500,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }
         )
     }
 }
@@ -44,7 +77,19 @@ export async function POST(request: NextRequest) {
         const body = await request.json()
         const { additional_trades, ...profileData } = body
         
-        const profile = await createCreatorProfile(user.id, profileData)
+        // Create profile using server-side client
+        const { data: profile, error: createError } = await supabase
+            .from('creator_profiles')
+            .insert({
+                user_id: user.id,
+                ...profileData,
+            })
+            .select()
+            .single()
+        
+        if (createError) {
+            throw createError
+        }
         
         // Add additional trades if provided
         if (additional_trades && Array.isArray(additional_trades)) {
@@ -58,7 +103,12 @@ export async function POST(request: NextRequest) {
             }
         }
         
-        return NextResponse.json(profile, { status: 201 })
+        return NextResponse.json(profile, { 
+            status: 201,
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        })
     } catch (error) {
         return NextResponse.json(
             { error: error instanceof Error ? error.message : 'Internal server error' },
@@ -82,34 +132,55 @@ export async function PATCH(request: NextRequest) {
         const body = await request.json()
         const { additional_trades, ...profileData } = body
         
-        const profile = await updateCreatorProfile(user.id, profileData)
+        // Get current profile first
+        const { data: currentProfile } = await supabase
+            .from('creator_profiles')
+            .select('id')
+            .eq('user_id', user.id)
+            .single()
+        
+        if (!currentProfile) {
+            return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
+        }
+        
+        // Update profile using server-side client
+        const { data: profile, error: updateError } = await supabase
+            .from('creator_profiles')
+            .update(profileData)
+            .eq('user_id', user.id)
+            .select()
+            .single()
+        
+        if (updateError) {
+            throw updateError
+        }
         
         // Update additional trades if provided
         if (additional_trades !== undefined) {
-            // Get current profile to get creator_id
-            const currentProfile = await getCreatorProfile(user.id)
-            if (currentProfile) {
-                // Remove all existing additional trades
-                await supabase
-                    .from('creator_trades')
-                    .delete()
-                    .eq('creator_id', currentProfile.id)
-                
-                // Add new ones
-                if (Array.isArray(additional_trades)) {
-                    for (const tradeId of additional_trades) {
-                        await supabase
-                            .from('creator_trades')
-                            .insert({
-                                creator_id: currentProfile.id,
-                                trade_id: tradeId,
-                            })
-                    }
+            // Remove all existing additional trades
+            await supabase
+                .from('creator_trades')
+                .delete()
+                .eq('creator_id', currentProfile.id)
+            
+            // Add new ones
+            if (Array.isArray(additional_trades)) {
+                for (const tradeId of additional_trades) {
+                    await supabase
+                        .from('creator_trades')
+                        .insert({
+                            creator_id: currentProfile.id,
+                            trade_id: tradeId,
+                        })
                 }
             }
         }
         
-        return NextResponse.json(profile)
+        return NextResponse.json(profile, {
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        })
     } catch (error) {
         return NextResponse.json(
             { error: error instanceof Error ? error.message : 'Internal server error' },
