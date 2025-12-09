@@ -35,19 +35,27 @@ export const Select: React.FC<SelectProps> = ({
                     {label}
                 </label>
             )}
-            <select
-                id={selectId}
-                className={`
-                    w-full px-4 py-2 border rounded-md
-                    text-[var(--color-text-primary)] bg-[var(--color-bg-tertiary)]
-                    border-[var(--color-border-light)]
-                    focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)] focus:border-[var(--color-primary-500)]
-                    disabled:bg-[var(--color-bg-secondary)] disabled:cursor-not-allowed disabled:opacity-50
-                    ${error ? 'border-[var(--color-error-500)]' : ''}
-                    ${className}
-                `}
-                {...props}
-            >
+            <div className='relative'>
+                <select
+                    id={selectId}
+                    className={`
+                        w-full px-4 py-3 border rounded-xl
+                        text-[var(--color-text-primary)] bg-[var(--color-bg-card)]
+                        border-[var(--color-accent-green)]/30
+                        focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-green)]/50 focus:border-[var(--color-accent-green)]
+                        disabled:bg-[var(--color-bg-secondary)] disabled:cursor-not-allowed disabled:opacity-50
+                        appearance-none cursor-pointer
+                        ${error ? 'border-[var(--color-error-500)]' : ''}
+                        ${className}
+                    `}
+                    style={{
+                        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ffffff' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
+                        backgroundRepeat: 'no-repeat',
+                        backgroundPosition: 'right 12px center',
+                        paddingRight: '40px',
+                    }}
+                    {...props}
+                >
                 {placeholder && (
                     <option value='' disabled>
                         {placeholder}
@@ -111,10 +119,10 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
                 value={value}
                 onChange={handleChange}
                 className={`
-                    w-full px-4 py-2 border rounded-md
-                    text-[var(--color-text-primary)] bg-[var(--color-bg-tertiary)]
-                    border-[var(--color-border-light)]
-                    focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)] focus:border-[var(--color-primary-500)]
+                    w-full px-4 py-2 border rounded-xl
+                    text-[var(--color-text-primary)] bg-[var(--color-bg-card)]
+                    border-[var(--color-border)]
+                    focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-green)]/50 focus:border-[var(--color-accent-green)]
                     disabled:bg-[var(--color-bg-secondary)] disabled:cursor-not-allowed disabled:opacity-50
                     min-h-[100px]
                     ${error ? 'border-[var(--color-error-500)]' : ''}
