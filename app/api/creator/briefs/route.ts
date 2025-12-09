@@ -8,29 +8,58 @@ export async function GET(request: NextRequest) {
         
         const {
             data: { user },
+            error: authError,
         } = await supabase.auth.getUser()
         
-        if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        if (authError || !user) {
+            return NextResponse.json(
+                { error: 'Unauthorized' },
+                { 
+                    status: 401,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                }
+            )
         }
         
-        const { data: profile } = await supabase
+        const { data: profile, error: profileError } = await supabase
             .from('creator_profiles')
             .select('id')
             .eq('user_id', user.id)
             .single()
         
-        if (!profile) {
-            return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
+        if (profileError || !profile) {
+            return NextResponse.json(
+                { error: 'Creator profile not found' },
+                { 
+                    status: 404,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                }
+            )
         }
         
         const briefs = await getBriefsForCreator(profile.id)
         
-        return NextResponse.json(briefs)
+        return NextResponse.json(briefs, {
+            status: 200,
+            headers: {
+                'Content-Type': 'application/json',
+                'Cache-Control': 'no-store',
+            },
+        })
     } catch (error) {
+        console.error('API route error:', error)
         return NextResponse.json(
             { error: error instanceof Error ? error.message : 'Internal server error' },
-            { status: 500 }
+            { 
+                status: 500,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }
         )
     }
 }
