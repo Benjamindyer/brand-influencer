@@ -43,6 +43,7 @@ export default function CreatorDashboard() {
                     },
                 })
                 
+                let profileData = null
                 if (!response.ok) {
                     if (response.status === 404) {
                         // Profile doesn't exist yet - that's okay
@@ -51,7 +52,7 @@ export default function CreatorDashboard() {
                         throw new Error(`Failed to load profile: ${response.status}`)
                     }
                 } else {
-                    const profileData = await response.json()
+                    profileData = await response.json()
                     setProfile(profileData)
                 }
                 
