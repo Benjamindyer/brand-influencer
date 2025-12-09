@@ -36,8 +36,24 @@ export default function CreatorDashboard() {
                     return
                 }
                 
-                const profileData = await getCreatorProfile(user.id)
-                setProfile(profileData)
+                // Use API route instead of direct Supabase query to avoid CORS/406 errors
+                const response = await fetch('/api/creator/profile', {
+                    headers: {
+                        'Accept': 'application/json',
+                    },
+                })
+                
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        // Profile doesn't exist yet - that's okay
+                        setProfile(null)
+                    } else {
+                        throw new Error(`Failed to load profile: ${response.status}`)
+                    }
+                } else {
+                    const profileData = await response.json()
+                    setProfile(profileData)
+                }
                 
                 if (profileData) {
                     const { data: applications } = await supabase
