@@ -56,19 +56,19 @@ export const Modal: React.FC<ModalProps> = ({
     
     return (
         <div
-            className='fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50'
+            className='fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70'
             onClick={onClose}
         >
             <div
                 className={`
-                    bg-white rounded-lg shadow-xl w-full ${sizeClasses[size]}
+                    bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-xl shadow-2xl w-full ${sizeClasses[size]}
                     max-h-[90vh] overflow-y-auto
                 `}
                 onClick={(e) => e.stopPropagation()}
             >
                 {title && (
-                    <div className='flex items-center justify-between p-6 border-b border-[var(--color-neutral-200)]'>
-                        <h2 className='text-2xl font-semibold text-[var(--color-text-primary)]'>
+                    <div className='flex items-center justify-between p-6 border-b border-[var(--color-border)]'>
+                        <h2 className='text-xl font-semibold text-[var(--color-text-primary)]'>
                             {title}
                         </h2>
                         <button
