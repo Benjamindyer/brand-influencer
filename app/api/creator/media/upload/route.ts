@@ -5,7 +5,7 @@ import { ALLOWED_IMAGE_TYPES, ALLOWED_VIDEO_TYPES, MAX_IMAGE_SIZE, MAX_VIDEO_SIZ
 
 export async function POST(request: NextRequest) {
     try {
-        const supabase = createApiClient()
+        const supabase = await createApiClient()
         const { data: { user }, error: authError } = await supabase.auth.getUser()
 
         if (authError || !user) {

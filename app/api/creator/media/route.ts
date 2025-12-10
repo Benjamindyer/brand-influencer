@@ -5,7 +5,7 @@ import { supabaseAdmin } from '@/lib/supabase/server'
 // GET - fetch creator's portfolio media
 export async function GET(request: NextRequest) {
     try {
-        const supabase = createApiClient()
+        const supabase = await createApiClient()
         const { data: { user }, error: authError } = await supabase.auth.getUser()
 
         if (authError || !user) {
@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
 // POST - create new media entry after upload
 export async function POST(request: NextRequest) {
     try {
-        const supabase = createApiClient()
+        const supabase = await createApiClient()
         const { data: { user }, error: authError } = await supabase.auth.getUser()
 
         if (authError || !user) {
@@ -163,7 +163,7 @@ export async function POST(request: NextRequest) {
 // DELETE - remove media
 export async function DELETE(request: NextRequest) {
     try {
-        const supabase = createApiClient()
+        const supabase = await createApiClient()
         const { data: { user }, error: authError } = await supabase.auth.getUser()
 
         if (authError || !user) {

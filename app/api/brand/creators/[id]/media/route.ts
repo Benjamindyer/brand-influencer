@@ -9,7 +9,7 @@ export async function GET(
 ) {
     try {
         const { id: creatorId } = await params
-        const supabase = createApiClient()
+        const supabase = await createApiClient()
         const { data: { user }, error: authError } = await supabase.auth.getUser()
 
         if (authError || !user) {
