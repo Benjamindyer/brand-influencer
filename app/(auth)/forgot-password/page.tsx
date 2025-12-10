@@ -1,45 +1,31 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
+import { supabase } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
 
-export default function PromoteAdminPage() {
-    const router = useRouter()
+export default function ForgotPasswordPage() {
     const [email, setEmail] = useState('')
     const [loading, setLoading] = useState(false)
+    const [message, setMessage] = useState<string | null>(null)
     const [error, setError] = useState<string | null>(null)
-    const [success, setSuccess] = useState(false)
     
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setLoading(true)
         setError(null)
-        setSuccess(false)
+        setMessage(null)
         
         try {
-            const response = await fetch('/api/admin/promote', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ email }),
+            const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+                redirectTo: `${window.location.origin}/reset-password`,
             })
             
-            const data = await response.json()
+            if (resetError) throw resetError
             
-            if (!response.ok) {
-                throw new Error(data.error || 'Failed to promote user')
-            }
-            
-            setSuccess(true)
-            
-            // Redirect to login after 2 seconds
-            setTimeout(() => {
-                router.push('/auth/login')
-            }, 2000)
+            setMessage('Check your email for a password reset link')
         } catch (err) {
             setError(err instanceof Error ? err.message : 'An error occurred')
         } finally {
@@ -48,24 +34,21 @@ export default function PromoteAdminPage() {
     }
     
     return (
-        <div className='min-h-screen flex items-center justify-center bg-[var(--color-neutral-100)] p-4'>
+        <div className='min-h-screen flex items-center justify-center bg-transparent p-4'>
             <Card className='w-full max-w-md'>
                 <CardHeader>
-                    <CardTitle>Promote User to Admin</CardTitle>
-                    <p className='text-sm text-[var(--color-text-secondary)] mt-2'>
-                        Enter the email of the user you want to promote to admin role.
-                    </p>
+                    <CardTitle>Reset Password</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleSubmit} className='space-y-4'>
                         <Input
-                            label='Email Address'
+                            label='Email'
                             type='email'
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
-                            disabled={loading || success}
-                            placeholder='user@example.com'
+                            disabled={loading}
+                            helperText="Enter your email address and we'll send you a reset link"
                         />
                         
                         {error && (
@@ -74,9 +57,9 @@ export default function PromoteAdminPage() {
                             </div>
                         )}
                         
-                        {success && (
+                        {message && (
                             <div className='p-3 bg-[var(--color-success-100)] text-[var(--color-success-800)] rounded-md text-sm'>
-                                ✓ User has been promoted to admin! Redirecting to login...
+                                {message}
                             </div>
                         )}
                         
@@ -84,17 +67,20 @@ export default function PromoteAdminPage() {
                             type='submit'
                             variant='primary'
                             className='w-full'
-                            disabled={loading || success}
+                            disabled={loading}
                         >
-                            {loading ? 'Promoting...' : 'Promote to Admin'}
+                            {loading ? 'Sending...' : 'Send Reset Link'}
                         </Button>
                         
-                        <div className='text-xs text-[var(--color-text-tertiary)] mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md'>
-                            <strong>Security Note:</strong> After promoting yourself, please delete this page and the /api/admin/promote endpoint for security.
-                        </div>
+                        <p className='text-sm text-center text-[var(--color-text-secondary)]'>
+                            <a href='/login' className='text-[var(--color-primary-600)] hover:underline'>
+                                Back to Sign In
+                            </a>
+                        </p>
                     </form>
                 </CardContent>
             </Card>
         </div>
     )
 }
+
