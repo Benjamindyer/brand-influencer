@@ -83,24 +83,31 @@ export function Navigation() {
         }
     }
     
+    const handleViewingAsChange = (newRole: ViewRole) => {
+        setViewingAs(newRole)
+    }
+    
     const getNavLinks = () => {
         if (!role) return []
         
-        if (role === 'creator') {
+        // For admin users, show links based on what role they're viewing as
+        const effectiveRole = role === 'admin' ? viewingAs : role
+        
+        if (effectiveRole === 'creator') {
             return [
                 { href: '/creator/dashboard', label: 'Dashboard' },
                 { href: '/creator/briefs', label: 'Browse Briefs' },
                 { href: '/creator/applications', label: 'Applications' },
                 { href: '/creator/profile/edit', label: 'Profile' },
             ]
-        } else if (role === 'brand') {
+        } else if (effectiveRole === 'brand') {
             return [
                 { href: '/brand/dashboard', label: 'Dashboard' },
                 { href: '/brand/creators/search', label: 'Search Creators' },
                 { href: '/brand/briefs/create', label: 'Create Brief' },
                 { href: '/brand/subscription', label: 'Subscription' },
             ]
-        } else if (role === 'admin') {
+        } else if (effectiveRole === 'admin') {
             return [
                 { href: '/admin/dashboard', label: 'Dashboard' },
                 { href: '/admin/users', label: 'Users' },
