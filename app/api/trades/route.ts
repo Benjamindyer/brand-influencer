@@ -1,16 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createApiClient } from '@/lib/supabase/api-client'
+import { supabaseAdmin } from '@/lib/supabase/server'
 
 export async function GET(request: NextRequest) {
     try {
-        const supabase = await createApiClient()
-
-        const { data, error } = await supabase
+        // Use admin client to bypass RLS since trades should be public
+        const { data, error } = await supabaseAdmin
             .from('trades')
             .select('*')
             .order('name')
 
         if (error) {
+            console.error('Trades fetch error:', error)
             return NextResponse.json(
                 { error: error.message },
                 {
@@ -31,6 +31,7 @@ export async function GET(request: NextRequest) {
             },
         })
     } catch (error) {
+        console.error('Trades API error:', error)
         return NextResponse.json(
             { error: error instanceof Error ? error.message : 'Internal server error' },
             {
@@ -43,4 +44,3 @@ export async function GET(request: NextRequest) {
         )
     }
 }
-
