@@ -35,3 +35,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+
+# Route group duplicates
+app/(admin)/
+app/(auth)/
+app/(brand)/
+app/(creator)/
