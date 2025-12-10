@@ -4,14 +4,17 @@ import { useState, useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
 import { NotificationBell } from '@/components/notifications/NotificationBell'
-import { Avatar } from '@/components/ui/Avatar'
+import { RoleSwitcher } from '@/components/admin/RoleSwitcher'
 import Link from 'next/link'
+
+type ViewRole = 'admin' | 'brand' | 'creator'
 
 export function Navigation() {
     const router = useRouter()
     const pathname = usePathname()
     const [user, setUser] = useState<any>(null)
     const [role, setRole] = useState<string | null>(null)
+    const [viewingAs, setViewingAs] = useState<ViewRole>('admin')
     const [loading, setLoading] = useState(true)
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
     
@@ -20,6 +23,12 @@ export function Navigation() {
         if (typeof window === 'undefined') {
             setLoading(false)
             return
+        }
+        
+        // Load admin viewing preference
+        const savedViewingAs = localStorage.getItem('admin_viewing_as') as ViewRole
+        if (savedViewingAs && ['admin', 'brand', 'creator'].includes(savedViewingAs)) {
+            setViewingAs(savedViewingAs)
         }
         
         loadUser()
@@ -136,15 +145,27 @@ export function Navigation() {
         )
     }
     
+    const effectiveRole = role === 'admin' ? viewingAs : role
+    const dashboardHref = effectiveRole === 'creator' 
+        ? '/creator/dashboard' 
+        : effectiveRole === 'brand' 
+            ? '/brand/dashboard' 
+            : '/admin/dashboard'
+    
     return (
         <nav className='border-b border-[var(--color-border)] bg-[var(--color-bg-secondary)] backdrop-blur-md sticky top-0 z-40' style={{
             boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.3)',
         }}>
             <div className='max-w-7xl mx-auto px-4 py-4'>
                 <div className='flex items-center justify-between'>
-                    <Link href={role === 'creator' ? '/creator/dashboard' : role === 'brand' ? '/brand/dashboard' : '/admin/dashboard'} className='text-xl font-bold text-[var(--color-text-primary)]'>
-                        Brand Influencer
-                    </Link>
+                    <div className='flex items-center gap-4'>
+                        <Link href={dashboardHref} className='text-xl font-bold text-[var(--color-text-primary)]'>
+                            Brand Influencer
+                        </Link>
+                        {role === 'admin' && (
+                            <RoleSwitcher onRoleChange={handleViewingAsChange} />
+                        )}
+                    </div>
                     
                     <div className='hidden md:flex items-center gap-6'>
                         {navLinks.map((link) => (
@@ -200,6 +221,11 @@ export function Navigation() {
                 {mobileMenuOpen && (
                     <div className='md:hidden mt-4 pb-4 border-t border-[var(--color-border)] pt-4'>
                         <div className='flex flex-col gap-2'>
+                            {role === 'admin' && (
+                                <div className='px-4 py-2'>
+                                    <RoleSwitcher onRoleChange={handleViewingAsChange} />
+                                </div>
+                            )}
                             {navLinks.map((link) => (
                                 <Link
                                     key={link.href}

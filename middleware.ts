@@ -99,6 +99,12 @@ export async function middleware(request: NextRequest) {
         const userRole = profile.role as UserRole
         
         // Role-based route protection
+        // Admin users can access all routes (for support/debugging)
+        if (userRole === 'admin') {
+            // Admins can access everything
+            return res
+        }
+        
         if (pathname.startsWith('/creator') && userRole !== 'creator') {
             return NextResponse.redirect(new URL('/unauthorized', request.url))
         }

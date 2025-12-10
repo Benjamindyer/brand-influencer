@@ -4,6 +4,7 @@ export interface CreatorProfile {
     name: string
     display_name: string | null
     profile_photo_url: string | null
+    cover_photo_url: string | null
     location_city: string | null
     location_country: string | null
     bio: string | null
