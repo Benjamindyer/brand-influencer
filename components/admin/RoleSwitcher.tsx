@@ -43,18 +43,18 @@ export function RoleSwitcher({ onRoleChange }: RoleSwitcherProps) {
     ]
     
     return (
-        <div className='flex items-center gap-2 px-3 py-2 bg-[var(--color-primary-50)] rounded-lg border border-[var(--color-primary-200)]'>
-            <span className='text-xs font-medium text-[var(--color-primary-700)]'>View as:</span>
+        <div className='flex items-center gap-2 px-3 py-2 bg-[var(--color-bg-secondary)] rounded-xl border border-[var(--color-border)]'>
+            <span className='text-xs font-medium text-[var(--color-text-secondary)]'>View as:</span>
             <div className='flex gap-1'>
                 {roles.map((role) => (
                     <button
                         key={role.value}
                         onClick={() => handleChange(role.value)}
                         className={`
-                            px-2 py-1 text-xs font-medium rounded transition-colors
+                            px-3 py-1.5 text-xs font-medium rounded-lg transition-colors
                             ${viewingAs === role.value
-                                ? 'bg-[var(--color-primary-600)] text-white'
-                                : 'bg-white text-[var(--color-neutral-600)] hover:bg-[var(--color-neutral-100)]'
+                                ? 'bg-[var(--color-accent-green)] text-white'
+                                : 'bg-[var(--color-bg-card)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] border border-[var(--color-border)]'
                             }
                         `}
                         title={`View as ${role.label}`}
@@ -67,3 +67,4 @@ export function RoleSwitcher({ onRoleChange }: RoleSwitcherProps) {
         </div>
     )
 }
+
